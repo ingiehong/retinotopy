@@ -26,16 +26,25 @@ function varargout = imager(varargin)
 
 % Edit the above text to modify the response to help imager
 
-% Last Modified by GUIDE v2.5 21-Aug-2009 16:16:46
-
+% Last Modified by GUIDE v2.5 26-Dec-2017 13:25:50
+% Grace Hwang is editing code
+dbstop if error
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
+%from gui_mainfcn
+%gui_StateFields =  {'gui_Name'
+%    'gui_Singleton'
+%    'gui_OpeningFcn'
+%    'gui_OutputFcn'
+%    'gui_LayoutFcn'
+%    'gui_Callback'};
+
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
     'gui_OpeningFcn', @imager_OpeningFcn, ...
     'gui_OutputFcn',  @imager_OutputFcn, ...
-    'gui_LayoutFcn',  [] , ...
-    'gui_Callback',   []);
+    'gui_LayoutFcn',  [] , ...  
+    'gui_Callback',   []); 
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -45,8 +54,8 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
-% End initialization code - DO NOT EDIT
 
+% End initialization code - DO NOT EDIT
 
 % --- Executes just before imager is made visible.
 function imager_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -65,7 +74,7 @@ FPS = 10;  %% frames per second
 
 %%  serial communication...
 
-delete(instrfind)
+% delete(instrfind)   % GMH commented
 
 % The smarthome X10 link
 
@@ -79,12 +88,25 @@ delete(instrfind)
 % disp('Please wait ...  Powering up the camera and motor.');
 % pause(10);
 
-%%serial link for the camera
-delete(instrfind ('Tag','clser'));  %% just in case it crashed
-scl = serial('COM3','Tag','clser','Terminator','CR',...
-    'DataTerminalReady','on','RequestToSend','on','bytesavailablefcnmode','byte');
-fopen(scl);
-handles.scl = scl;
+%% Previous code
+%%serial link for the camera  %GMH commenting out
+%%delete(instrfind ('Tag','clser'));  %% just in case it crashed %GMH
+%%commented out
+%%scl = serial('COM3','Tag','clser','Terminator','CR',... % GMH commented
+%%out
+%%    'DataTerminalReady','on','RequestToSend','on','bytesavailablefcnmode','byte'); %GMH commented out
+%%fopen(scl); % GMH commented out
+%%handles.scl = scl; %GMH commented out
+
+% GMH adding this block
+% this code should find Dalsa camera
+% vid = videoinput('gige', 1, 'Mono10');
+% src = getselectedsource(vid);
+% preview(vid);
+% vid.FramesPerTrigger = 1;
+% src.ExposureTime = 99000;
+% src.AcquisitionFrameRate = 10;
+%%% end of block
 
 %%sit = serial('COM2','Tag','ilser','Terminator','CR','DataTerminalReady',...
 %%    'off','RequestToSend','off');
@@ -92,27 +114,33 @@ handles.scl = scl;
 %% This now uses the internet RTS-8 serial server (port0)
 
 %%%illuminator serial 
-sit = serial('COM2','Tag','ilser','Terminator','CR','DataTerminalReady',...
-    'off','RequestToSend','off');
-fopen(sit);
-handles.sit = sit;
+%GMH comment out for now
+%sit = serial('COM2','Tag','ilser','Terminator','CR','DataTerminalReady',...
+%    'off','RequestToSend','off');
+%fopen(sit);
+%handles.sit = sit;
 
 
 %% Set camera mode
 
-y = clsend('sem 7');
-y = clsend(sprintf('ssf %d',round(FPS)));
-y = clsend('sbm 2 2');
+%y = clsend('sem 7');  % GMH commented out
+%y = clsend(sprintf('ssf %d',round(FPS))); %GMH commented out
+%y = clsend('sbm 2 2'); %GMH commented out
 
 %% Set up the parallel port output
 
 global parport;
 
+%% GMH should now assign parport to a new session of DAQ
+% session-based interface, Transition your code to session-based interface
+%parport= daq.createSession('ni'); %GMH commented out
+%addDigitalChannel(parport, 'Dev1',0,'Bidirectional');  %GMH thinks this replaces putvalue(parport,0)
+
 %% Originally we used the parallel port...
 %
-parport = digitalio('parallel','LPT1');
-set(parport,'Tag','plp');
-addline(parport,0,0,'out');
+% parport = digitalio('parallel','LPT1');
+% set(parport,'Tag','plp');
+% addline(parport,0,0,'out');
 
 %%
 
@@ -123,21 +151,22 @@ addline(parport,0,0,'out');
 % set(parport,'Tag','plp');
 % addline(parport,0,'out');
 % 
-putvalue(parport,0);  %% make sure it is zero to begin with
+
+%putvalue(parport,0);  %% make sure it is zero to begin with %GMH testing
 
 %%% But now we are using the audio output!!!!
 
-handles.blip = audioplayer(10*sin(linspace(0,2*pi,32)),30000);
+handles.blip = audioplayer(10*sin(linspace(0,2*pi,32)),30000); 
 
 %% Rename
 
-handles.milapp  = handles.activex25;
-handles.mildig  = handles.activex24;
-handles.mildisp = handles.activex23;
-handles.milimg  = handles.activex26;
-handles.milsys  = handles.activex27;
+%handles.milapp  = handles.activex25; %GMH commented out
+%handles.mildig  = handles.activex24; %GMH commented out
+%handles.mildisp = handles.activex23; %GMH commented out
+%handles.milimg  = handles.activex26; %GMH commented out
+%handles.milsys  = handles.activex27; %GMH commented out
 
-handles.milsys.Allocate;  %% Allocate Mil system
+%handles.milsys.Allocate;  %% Allocate Mil system %GMH commented out
 
 %% I can't get the interrupt to work!
 
@@ -156,13 +185,16 @@ handles.milsys.Allocate;  %% Allocate Mil system
 % ;   %% enable interrupt
 % handles.milsys.set('UserBitChangedEvent',1);  %% Allow calls to the event handler
 
-handles.mildisp.set('OwnerSystem',handles.milsys,...
-    'DisplayType','dispActiveMILWindow');
-handles.mildisp.Allocate
-
-handles.mildig.set('OwnerSystem',handles.milsys,'GrabFrameEndEvent',0,...
-    'GrabFrameStartEvent',0,'GrabStartEvent',0,'GrabEndEvent',0,...
-    'GrabMode','digAsynchronousQueue');
+%GMH commented out following block
+%Begin block GMH
+%handles.mildisp.set('OwnerSystem',handles.milsys,...
+%    'DisplayType','dispActiveMILWindow');
+%handles.mildisp.Allocate
+%
+%handles.mildig.set('OwnerSystem',handles.milsys,'GrabFrameEndEvent',0,...
+%    'GrabFrameStartEvent',0,'GrabStartEvent',0,'GrabEndEvent',0,...
+%    'GrabMode','digAsynchronousQueue');
+%End block GMH
 
 % From mil.h
 % #define M_ARM_CONTINUOUS                              9L
@@ -186,29 +218,31 @@ handles.mildig.set('OwnerSystem',handles.milsys,'GrabFrameEndEvent',0,...
 %% set(handles.mildig,'TriggerSource',35,'TriggerMode',13,'TriggerEnabled',0);
 %% handles.mildig.set('UserInFormat','digTTL');
 
-
+%C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager\original dcfs GMH
+GMHdir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager';
 %%%% Ian code...
 global ROIcrop
-handles.mildig.set('Format','C:\imager\2x2bin_dlr.dcf');  %Preset the binning to 2x2
+%handles.mildig.set('Format', GMHdir);  %c:\imager Preset the binning to 2x2
+
 y = clsend('sbm 2 2');
 
 %set(handles.binning,'enable','off')
 
-handles.mildig.Allocate;
+%handles.mildig.Allocate;
 
-IMGSIZE = handles.mildig.get('SizeX');  %% get the size
+IMGSIZE = [ 512 ]; %handles.mildig.get('SizeX');  %% get the size
 ROIcrop = [0 0 IMGSIZE IMGSIZE];  %Preset to full image
 
 
-handles.milimg.set('CanGrab',1,'CanDisplay',1,'CanProcess',0, ...
-    'SizeX',IMGSIZE,'SizeY',IMGSIZE,'DataDepth',16,'NumberOfBands',1, ...
-    'OwnerSystem',handles.milsys);
-
-handles.milimg.Allocate;
-
-handles.mildig.set('Image',handles.milimg);
-handles.mildisp.set('Image',handles.milimg,'ViewMode',...
-    'dispBitShift','ViewBitShift',4);
+%handles.milimg.set('CanGrab',1,'CanDisplay',1,'CanProcess',0, ...
+%     'SizeX',IMGSIZE,'SizeY',IMGSIZE,'DataDepth',16,'NumberOfBands',1, ...
+%     'OwnerSystem',handles.milsys);
+% 
+% handles.milimg.Allocate;
+% 
+% handles.mildig.set('Image',handles.milimg);
+% handles.mildisp.set('Image',handles.milimg,'ViewMode',...
+%     'dispBitShift','ViewBitShift',4);
 
 %% the buffers...
 
@@ -217,23 +251,23 @@ global NBUF;
 NBUF = 2;  %%  buffer...
 
 for(i=1:NBUF)
-    handles.buf{i} = actxcontrol('MIL.Image',[0 0 1 1]);
-    handles.buf{i}.set('CanGrab',1,'CanDisplay',0,'CanProcess',0, ...
-        'SizeX',IMGSIZE,'SizeY',IMGSIZE,'DataDepth',16,'NumberOfBands',1, ...
-        'FileFormat','imRaw','OwnerSystem',handles.milsys);
-    
+%     handles.buf{i} = actxcontrol('MIL.Image',[0 0 1 1]);
+%     handles.buf{i}.set('CanGrab',1,'CanDisplay',0,'CanProcess',0, ...
+%         'SizeX',IMGSIZE,'SizeY',IMGSIZE,'DataDepth',16,'NumberOfBands',1, ...
+%         'FileFormat','imRaw','OwnerSystem',handles.milsys);
+%     
         %% The child images
 
         
-        handles.child{i} = actxcontrol('MIL.Image',[0 0 1 1]);
-      
-        set(handles.child{i},'ParentImage',handles.buf{i},'AutomaticAllocation',1);
-        set(handles.child{i}.ChildRegion,'OffsetX',256);
-        set(handles.child{i}.ChildRegion,'OffsetY',256);
-        set(handles.child{i}.ChildRegion,'SizeX',128);
-        set(handles.child{i}.ChildRegion,'SizeY',128);
-
-        handles.buf{i}.Allocate;
+%         handles.child{i} = actxcontrol('MIL.Image',[0 0 1 1]);
+% %       
+%         set(handles.child{i},'ParentImage',handles.buf{i},'AutomaticAllocation',1);
+%         set(handles.child{i}.ChildRegion,'OffsetX',256);
+%         set(handles.child{i}.ChildRegion,'OffsetY',256);
+%         set(handles.child{i}.ChildRegion,'SizeX',128);
+%         set(handles.child{i}.ChildRegion,'SizeY',128);
+% 
+%         handles.buf{i}.Allocate;
         %%handles.child{i}.Allocate;
 end
 
@@ -244,8 +278,8 @@ set(handles.timer,'Period',0.5,'BusyMode','drop','ExecutionMode',...
     'fixedSpacing','TimerFcn',@timerhandler)
 
 %% Now the data directory, file name, and time tag
-
-handles.datatxt = 'c:\imager_data\xx0';
+%'C:\Users\Ingie\Documents\imager_data';
+handles.datatxt ='C:\Users\Ingie\Documents\imager_data\xx0'; %'c:\imager_data\xx0';
 handles.unit = 'u000_000';
 handles.time_tag = 0;
 
@@ -360,7 +394,7 @@ function panx_Callback(hObject, eventdata, handles)
 
 px = get(handles.panx,'Value');
 py = get(handles.pany,'Value');
-handles.mildisp.Pan(px,-py);
+%handles.mildisp.Pan(px,-py); GMH commented out due to error message
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1098,16 +1132,16 @@ handles.mildig.Free;
 
 switch(idx)
     case 1,     % 1x1
-        handles.mildig.set('Format','C:\imager\1x1bin_dlr.dcf');
+        handles.mildig.set('Format',[ GMHdir '\1x1bin_dlr.dcf' ] ); %GMH
         y = clsend('sbm 1 1');
     case 2,     % 2x2
-        handles.mildig.set('Format','C:\imager\2x2bin_dlr.dcf');
+        handles.mildig.set('Format',[ GMHdir '\2x2bin_dlr.dcf' ]);% GMH'C:\imager\2x2bin_dlr.dcf');
         y = clsend('sbm 2 2');
     case 3,     % 4x4
-        handles.mildig.set('Format','C:\imager\4x4bin_dlr.dcf');
+        handles.mildig.set('Format',[ GMHdir '\4x4bin_dlr.dcf' ]);
         y = clsend('sbm 4 4');
     case 4,     % 8x8
-        handles.mildig.set('Format','C:\imager\8x8bin_dlr.dcf');
+        handles.mildig.set('Format', [ GMHdir '\8x8bin_dlr.dcf' ]);
         y = clsend('sbm 8 8');
 end
 
@@ -1390,7 +1424,7 @@ if(strcmp(r,'Yes'))
     fname = strrep(fname,'-','_');
     fname = [fname '.mat'];
     fname(2) = ':';
-    save(fname,'grab');
+    save(fname,'grab'); %GMH this is where raw file is saved to disk
 end
 delete(10);
         
@@ -1683,7 +1717,7 @@ global imagerhandles IMGSIZE ROIcrop;
 
 img = zeros(IMGSIZE,IMGSIZE,'uint16');
 zz  = zeros(IMGSIZE,IMGSIZE,'uint16');
-img = imagerhandles.milimg.Get(zz,IMGSIZE^2,-1,0,0,IMGSIZE,IMGSIZE)';  %% grab last one
+%img = imagerhandles.milimg.Get(zz,IMGSIZE^2,-1,0,0,IMGSIZE,IMGSIZE)';  %% grab last one
 
 figure(10);
 imagesc(img),axis off, colormap gray; truesize
@@ -1694,8 +1728,8 @@ if(strcmp(r,'Yes'))
     ROIcrop = round(ROIcrop);
 end
 close(10)
-
-save('C:\imager\lastROI','ROIcrop')
+GMHdir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager';
+save([GMHdir '\lastROI' ],'ROIcrop'); %'C:\imager\lastROI','ROIcrop')
 
 function hwroisizetxt_Callback(hObject, eventdata, handles)
 % hObject    handle to hwroisizetxt (see GCBO)
@@ -1763,6 +1797,6 @@ function getLastROI_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global ROIcrop
-
-load('C:\imager\lastROI','ROIcrop')
+load('C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager\lastROI', 'ROIcrop')
+%load('C:\imager\lastROI','ROIcrop') %need to update this with new info on lastROI
 ROIcrop

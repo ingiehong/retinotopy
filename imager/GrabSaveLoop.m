@@ -10,27 +10,27 @@ N = ceil(total_time*FPS);
 if get(GUIhandles.main.streamFlag,'value')
     
     zz = zeros(ROIcrop(3),ROIcrop(4),'uint16');
-    h.mildig.Grab;
-    h.mildig.GrabWait(3);
+%    h.mildig.Grab; %GMH
+%    h.mildig.GrabWait(3); %GMH
 
     for n = 1:N
 
         %Wait for grab to finish before switching the buffers
-        h.mildig.GrabWait(3);
+ %        h.mildig.GrabWait(3); %GMH
 
         %Switch destination, then grab to it (asynchronously)
-        h.mildig.Image = h.buf{bitand(n,1)+1};
-        h.mildig.Grab;
+ %       h.mildig.Image = h.buf{bitand(n,1)+1}; %GMH
+ %       h.mildig.Grab; %GMH
 
         %TTL pulse
-        putvalue(parport,1); putvalue(parport,0);
+%        putvalue(parport,1); putvalue(parport,0); %GMH
 
         %Pull into Matlab workspace and save to disk
         im = h.buf{2-bitand(n,1)}.Get(zz,IMGSIZE^2,-1,ROIcrop(1),ROIcrop(2),ROIcrop(3),ROIcrop(4));
         var = ['f' num2str(n)];
         fnamedum = [fname '_' var];
         save(fnamedum,'im')
-
+keyboard
 
     end
     
@@ -38,23 +38,23 @@ if get(GUIhandles.main.streamFlag,'value')
 else
     
     zz = zeros(ROIcrop(3),ROIcrop(4),'uint16');
-    h.mildig.Grab;
-    h.mildig.GrabWait(3);
+%    h.mildig.Grab; %GMH
+%    h.mildig.GrabWait(3); %GMH
 
     for n = 1:N
 
         %Wait for grab to finish before switching the buffers
-        h.mildig.GrabWait(3);
-
-        %Switch destination, then grab to it (asynchronously)
-        h.mildig.Image = h.buf{bitand(n,1)+1};
-        h.mildig.Grab;
-
-        %TTL pulse
-        putvalue(parport,1); putvalue(parport,0);
+%         h.mildig.GrabWait(3); %GMH
+% 
+%         %Switch destination, then grab to it (asynchronously)
+%         h.mildig.Image = h.buf{bitand(n,1)+1}; %GMH
+%         h.mildig.Grab; %GMH
+% 
+%         %TTL pulse
+%         putvalue(parport,1); putvalue(parport,0);  %GMH
 
         %Pull into Matlab workspace (but wait to save it)
-        Tens(:,:,n) = h.buf{2-bitand(n,1)}.Get(zz,IMGSIZE^2,-1,ROIcrop(1),ROIcrop(2),ROIcrop(3),ROIcrop(4));
+%        Tens(:,:,n) = h.buf{2-bitand(n,1)}.Get(zz,IMGSIZE^2,-1,ROIcrop(1),ROIcrop(2),ROIcrop(3),ROIcrop(4));
 
 
     end
