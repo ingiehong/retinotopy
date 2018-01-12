@@ -9,7 +9,9 @@ global comState
 if ~isempty(varargin{1})
     rip = varargin{1}{1}
 else
-    rip = '10.1.38.88';  %2ph master 
+   % rip = '10.1.38.88';  %2ph master 
+   rip = '10.194.195.180'; %Ingie's lab IP address
+   %rip = 10.101.69.51;
 end
 
 % close all open serial port objects on the same port and remove
@@ -45,7 +47,7 @@ stat=get(comState.serialPortHandle, 'Status');
 if ~strcmp(stat, 'open')
     disp([' StimConfig: trouble opening port; cannot proceed']);
     comState.serialPortHandle=[];
-    out=1;
+    out=2; % GMH do I want this to be 2?
     return;
 end
 

@@ -1,10 +1,10 @@
 function configureDisplay(varargin)
-
+dbstop if error
 close all
 
 %clear all;
 
-Priority(5);  %Make sure priority is set to "real-time"  
+Priority(2);  %Make sure priority is set to "real-time"  GMH 2 is realtime
 
 % priorityLevel=MaxPriority(w);
 % Priority(priorityLevel);
@@ -16,7 +16,7 @@ configCom(varargin);
 
 configSync;
 
-configShutter;
+%configShutter;  % GMH comment this out
 
 screenconfig;
 

@@ -70,7 +70,7 @@ StimPiece = [0 0 TDim(2)-1 TDim(1)-1]';
 Screen(screenPTR, 'FillRect', Pstruct.background)
 
 %Wake up the daq:
-DaqDOut(daq, 0, 0); %I do this at the beginning because it improves timing on the first call to daq below
+%DaqDOut(daq, 0, 0); %I do this at the beginning because it improves timing on the first call to daq below
 
    
 
@@ -79,7 +79,7 @@ Screen('DrawTexture', screenPTR, Stxtr(1),SyncPiece,SyncLoc);
 Screen(screenPTR, 'Flip');
 if loopTrial ~= -1  %if you hit "run", send pulse
     digWord = 7;  %Make 1st,2nd,3rd bits high
-    DaqDOut(daq, 0, digWord);
+    %DaqDOut(daq, 0, digWord);
 end
 for i = 2:Npreframes
     Screen('DrawTexture', screenPTR, Stxtr(2),SyncPiece,SyncLoc);
@@ -132,8 +132,8 @@ Screen('DrawTexture', screenPTR, Stxtr(1),SyncPiece,SyncLoc);
 Screen(screenPTR, 'Flip');
 if loopTrial ~= -1 %if you hit "run", send pulse
     digWord = bitxor(digWord,7); %toggle all 3 bits (1st/2nd bits go low, 3rd bit is flipped)
-    DaqDOut(daq, 0,digWord);
-    DaqDOut(daq, 0, 0);  %Make sure 3rd bit finishes low
+    %DaqDOut(daq, 0,digWord);
+    %DaqDOut(daq, 0, 0);  %Make sure 3rd bit finishes low
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

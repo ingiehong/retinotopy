@@ -5,7 +5,7 @@ global screenPTR screenNum Mstate
 %screens=Screen('Screens');
 %screenNum=max(screens);
 
-screenNum=0;
+screenNum=2; % GMH changed this to position stimulation on left screen (12/19/17)
 
 screenRes = Screen('Resolution',screenNum);
 
@@ -31,7 +31,7 @@ SyncPiece = [0 0 syncWX-1 syncWY-1]';
 
 %Set the screen
 
-Screen(screenPTR, 'FillRect', 128)
+Screen(screenPTR, 'FillRect', 128) % 128
 Screen(screenPTR, 'Flip');
 
 wsync = Screen(screenPTR, 'MakeTexture', 0*ones(syncWY,syncWX)); % "low"
