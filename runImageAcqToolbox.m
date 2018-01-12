@@ -1,5 +1,5 @@
 % this script sets up the imager
-cd('C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager')
+cd('C:\Users\Ingie\Documents\My Code\Callaway_ISI\imager')
 %to get access to Dalsa
 % vid = videoinput('gige', 1, 'Mono10'); %10 bit monochrome system
 % src = getselectedsource(vid);
