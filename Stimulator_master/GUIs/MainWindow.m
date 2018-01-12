@@ -22,7 +22,7 @@ function varargout = MainWindow(varargin)
 
 % Edit the above text to modify the response to help MainWindow
 
-% Last Modified by GUIDE v2.5 17-Sep-2013 15:26:17
+% Last Modified by GUIDE v2.5 22-Dec-2017 13:04:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -282,8 +282,8 @@ if ~Mstate.running
         sendtoImager(sprintf(['I %2.3f' 13],total_time))
         
         %Make sure analog in is not running
-        stop(analogIN)
-        flushdata(analogIN)        
+%        stop(analogIN)
+%        flushdata(analogIN)        
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
@@ -553,5 +553,3 @@ function mouseBehavior_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of mouseBehavior
-
-

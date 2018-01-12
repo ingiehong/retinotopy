@@ -17,7 +17,8 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     [c r] = getcondrep(trialno);  %get cond and rep for this trialno
 
     if ISIbit
-        start(analogIN)  %Start sampling acquistion and stimulus syncs
+%        start(analogIN)  %Start sampling acquistion and stimulus syncs GMH
+%        commented out 
     end
     
     %%%Update ScanImage with Trial/Cond/Rep
@@ -48,15 +49,16 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
         
         %%%Timing is not crucial for this last portion of the loop (both display and frame grabber/saving is inactive)...
         
-        stop(analogIN)  %Stop sampling acquistion and stimulus syncs
-
-        [syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] = getSyncTimes;   
-        syncInfo.dSyncswave = [];  %Just empty it for now
-        saveSyncInfo(syncInfo)  %append .analyzer file
+       % stop(analogIN)  %Stop sampling acquistion and stimulus syncs  %GMH
+       % commented out
+      % [syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] =
+      % getSyncTimes;   %GMH
+      %  syncInfo.dSyncswave = [];  %Just empty it for now %GMH
+      %  saveSyncInfo(syncInfo)  %append .analyzer file %GMH
         
         %[looperInfo.conds{c}.repeats{r}.dispSyncs looperInfo.conds{c}.repeats{r}.acqSyncs looperInfo.conds{c}.repeats{r}.dSyncswave] = getSyncTimes;
         
-        onlineAnalysis(c,r,syncInfo)     %Compute F1
+  %      onlineAnalysis(c,r,syncInfo)     %Compute F1 GMH commented out
 
         
     end

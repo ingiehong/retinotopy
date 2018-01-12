@@ -1,5 +1,5 @@
 function Stimulator
-
+dbstop if error
 %Initialize stimulus parameter structures
 configurePstate('PG')
 configureMstate
@@ -9,9 +9,9 @@ configureLstate
 configDisplayCom    %stimulus computer
 
 %NI USB input for ISI acquisition timing from frame grabber
-configSyncInput  
+%configSyncInput  %GMH commented this out
 
-%configEyeShutter
+%configEyeShutter %GMH comented this out
 
 %Open GUIs
 MainWindow

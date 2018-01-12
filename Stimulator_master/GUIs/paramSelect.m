@@ -22,7 +22,7 @@ function varargout = paramSelect(varargin)
 
 % Edit the above text to modify the response to help paramSelect
 
-% Last Modified by GUIDE v2.5 18-Jun-2010 15:17:05
+% Last Modified by GUIDE v2.5 22-Dec-2017 12:35:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -155,9 +155,10 @@ function loadParams_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 global Pstate
-
-[file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state','C:\Params&Loopers');
-
+ddir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\Stimulator_master'
+%[file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state','C:\Params&Loopers');
+[file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state',ddir);
+clear ddir
 id = find(file == '.');
 fext = file(id+1:end);
 
@@ -269,4 +270,3 @@ global Mstate
 
 startStimulus      %Tell Display to show its buffered images. 
 %waitforDisplayResp   %Wait for serial port to respond from display at end of trial
-

@@ -1,6 +1,7 @@
 function configDisplayCom
-
+%%12/15/2017 this version runs!
 global DcomState Mstate
+dbstop if error
 
 %Modification of MP285Config, for configuration of udp port connection to visual stimulus PC (pep) 	
 
@@ -8,9 +9,12 @@ global DcomState Mstate
 
 %close all open udp port objects on the same port and remove
 %the relevant object form the workspace
-port = instrfindall('RemoteHost',Mstate.stimulusIDP);
-%port = instrfindall('RemoteHost','10.1.50.224');
-%port = '10.1.50.224';
+Mstate.stimulusIDP ='10.194.195.180';
+% Ingie's desktop IP='10.194.195.180' %GMH
+port = instrfindall('RemoteHost',Mstate.stimulusIDP); %GMH
+%port = instrfindall('RemoteHost','192.168.0.104');
+%port='192.168.0.104';
+%port = '10.196.38.238';
 if length(port) > 0; 
     fclose(port); 
     delete(port);
@@ -19,7 +23,7 @@ end
 
 % make udp object named 'stim'
 DcomState.serialPortHandle = udp(Mstate.stimulusIDP,'RemotePort',8866,'LocalPort',8844);
-%DcomState.serialPortHandle = udp('10.1.50.224','RemotePort',8866,'LocalPort',8844);
+%DcomState.serialPortHandle = udp('192.168.0.104','RemotePort',8866,'LocalPort',8844);
 
 set(DcomState.serialPortHandle, 'OutputBufferSize', 1024)
 set(DcomState.serialPortHandle, 'InputBufferSize', 1024)
