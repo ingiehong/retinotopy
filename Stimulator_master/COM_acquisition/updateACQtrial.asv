@@ -1,0 +1,72 @@
+function updateACQtrial(ttag)
+
+%%%%%%%%Update ScanImage with Trial/Cond/Rep %%%%%%%%%%%%%%%%%
+
+global looperInfo ACQserial
+
+[cond] = getcondrep(ttag);
+
+
+n = get(ACQserial.serialPortHandle,'BytesAvailable'); %Wait for response
+if n > 0
+    fread(ACQserial.serialPortHandle,n); %clear the buffer
+end
+
+
+Nloop = length(Lstate.param); %no. of looping parameters
+if Nloop == 1
+
+    pdum = Lstate.param{1}{1};
+    vdum = Lstate.param{1}{2};
+    
+    pdum = looperInfo.conds{cond}.symbol{1};
+    vdum = looperInfo.conds{cond}.val{1};
+
+    fwrite(ACQserial.serialPortHandle,['TrialInfo;' ...
+        num2str(ttag+1) ';' ...
+        pdum ';' ...
+        num2str(vdum) '!']);
+
+elseif Nloop == 2
+    
+    pdum1 = looperInfo.conds{cond}.symbol{1};
+    vdum1 = looperInfo.conds{cond}.val{1};
+    pdum2 = looperInfo.conds{cond}.symbol{2};
+    vdum2 = looperInfo.conds{cond}.val{2};
+
+    fwrite(ACQserial.serialPortHandle,['TrialInfo;' ...
+        num2str(ttag+1) ';' ...
+        pdum1 ';' ...
+        num2str(vdum1) ';' ...
+        pdum2 ';' ...
+        num2str(vdum2) '!']);
+
+
+elseif Nloop == 3
+
+    pdum1 = looperInfo.conds{cond}.symbol{1};
+    vdum1 = looperInfo.conds{cond}.val{1};
+    pdum2 = looperInfo.conds{cond}.symbol{2};
+    vdum2 = looperInfo.conds{cond}.val{2};
+
+    fwrite(ACQserial.serialPortHandle,['TrialInfo;' ...
+        num2str(ttag+1) ';' ...
+        pdum1 ';' ...
+        num2str(vdum1) ';' ...
+        pdum2 ';' ...
+        num2str(vdum2) ';' ...
+        pdum3 ';' ...
+        num2str(vdum3) '!']);
+end
+
+
+%Wait for handshake before sync.  The last write operation was timing out in previous versions of 'run'.  I
+%suspect it was because the sync pulse was getting sent, thus starting
+%the acquisition, before the write operation had time to finish (This happened on rare occasions)
+while n == 0
+    n = get(ACQserial.serialPortHandle,'BytesAvailable'); %Wait for response
+end
+pause(.5) %Wait to get rest of string
+n = get(ACQserial.serialPortHandle,'BytesAvailable');
+fread(ACQserial.serialPortHandle,n); %clear the buffer
+

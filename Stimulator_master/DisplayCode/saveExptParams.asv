@@ -1,0 +1,43 @@
+function saveExptParams
+
+global Mstate Pstate Lstate looperInfo
+
+%Save the analzer file
+
+Analyzer.M = Mstate;
+Analyzer.P = Pstate;
+Analyzer.L = Lstate;
+Analyzer.loops = looperInfo;
+
+
+title = ['params ' Mstate.anim '_' sprintf('u%s',Mstate.unit) '_' Mstate.expt];
+
+%Prep the string:
+rootstring = strtrim(Mstate.analyzerRoot);
+if ~strcmp(rootstring(1),';')
+    rootstring = [';' rootstring];
+end
+if strcmp(rootstring(end),';')
+    rootstring = rootstring(1:end-1);
+end
+
+id = find(rootstring == ';');
+
+%Save each root:
+for i = 1:length(id)+1
+    
+    rootdum = rootstring(id(i))
+    dd = [Mstate.analyzerRoot Mstate.anim];
+
+    if(~exist(dd))
+        mkdir(dd);  %if there is a new animal
+    end
+
+    dd = [dd '\' title];
+
+    ['Saving analyzer file at location:  ' dd]
+
+    save(dd ,'Analyzer')
+    
+end
+

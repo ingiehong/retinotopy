@@ -1,0 +1,21 @@
+function UpdateACQExptName
+
+global GUIhandles ACQserial Mstate
+
+ScanImageBit = get(GUIhandles.main.twophotonflag,'value');
+
+% set(0,'DefaultTextFontName','helvetica','DefaultTextFontAngle','normal','DefaultTextColor',[0 0 0])
+% button = questdlg(sprintf('Are you sure you want to save the data\nand advance to the next experiment?'));
+% set(0,'DefaultTextFontName','helvetica','DefaultTextFontAngle','oblique','DefaultTextColor',[1 1 0])
+
+if ScanImageBit
+    
+    [Mstate.anim '_' Mstate.unit '_' Mstate.expt 
+        sprintf('u%03d_',Mstate.unit) ...
+        sprintf('%03d',Mstate.expt) '!']
+
+%     fwrite(ACQserial.serialPortHandle,[Mstate.anim '_' ...
+%         sprintf('u%03d_',pepconfig.unit) ...
+%         sprintf('%03d',pepconfig.experiment) '!']);
+    
+end

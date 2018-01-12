@@ -1,0 +1,13 @@
+function startStimulus(sampleBit)
+
+%sampleBit tells the the stimulus computer whether it is running a sample
+%or
+
+global DcomState
+
+mod = getmoduleID;
+
+msg = ['G;' mod ';' num2str(sampleBit) ';~'];
+
+fwrite(DcomState.serialPortHandle,msg);
+

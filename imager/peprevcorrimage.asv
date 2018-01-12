@@ -1,0 +1,36 @@
+function acc = peprevcorrimage(tau)
+
+p = pepgetgratingparam';
+nc = pepgetnoconditions;
+acc = cell(1,size(p,1));
+
+for(c=0:nc-1)
+    c
+    pepsetcondition(c);
+    val = pepgetvalues;
+    seq = pepgetsequence(val(1));  %% Assume rseed is the first one
+    hp = pepparam('h_period');
+    idx = 1:hp:length(seq);
+    seq = seq(idx);
+    T = (idx-1)/pepparam('refresh')*1000+tau;  %% The times at which the frames changed plus delay
+    nr = pepgetnorepeats;
+    for(r=0:nr-1)
+        pepsetrepeat(r);
+        ttag = pepgettimetag;
+        ts = pepgettimes(ttag);
+        sync = pepgetsync;
+        frames = pepgetframeidx(ttag,T);  %% Get the frames at these times
+        for(j=1:length(frames))
+            img = peploadimage(j);
+            imagesc(img); colormap gray;
+            title(num2str(seq(j)))
+            pause;
+            if(isempty(acc{1+seq(j)}))
+                acc{1+seq(j)} = {1 img};
+            else
+                acc{1+seq(j)}{1} = acc{1+seq(j)}{1}+1;
+                acc{1+seq(j)}{2} = acc{1+seq(j)}{2}+img;
+            end
+        end
+    end
+end

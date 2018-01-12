@@ -1,0 +1,41 @@
+function screenconfig
+
+global screenPTR screenNum Mstate
+
+%screens=Screen('Screens');
+%screenNum=max(screens);
+
+screenNum=0;
+
+screenRes = Screen('Resolution',screenNum);
+
+screenPTR = Screen('OpenWindow',screenNum);
+
+Mstate.refresh_rate = 1/Screen('GetFlipInterval', screenPTR);
+
+load('C:\PTB\Stimulator_slave\screenLumParams','bufLUT')
+bufLUT = bufLUT/255;  %[0 1]
+bufLUT = (0:255)/255;
+bufLUT = bufLUT'*[1 1 1];
+
+
+Screen('LoadNormalizedGammaTable', screenPTR, bufLUT);  %gamma LUT
+
+%Set the screen
+
+Screen(screenPTR, 'FillRect', 128)
+Screen(screenPTR, 'Flip');
+
+pixpercmX = screenRes.width/Mstate.screenXcm;
+pixpercmY = screenRes.height/Mstate.screenYcm;
+%%%Write sync to the off-screen%%%%
+syncWX = round(pixpercmX*3.5);
+syncWY = round(pixpercmY*3.5);
+wsync(1) = Screen(screenPTR, 'MakeTexture', 255*ones(syncWY,syncWX)); % "hi"
+wsync(2) = Screen(screenPTR, 'MakeTexture', 0*ones(syncWY,syncWX)); % "low"
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Screen('DrawTexture', screenPTR, wsync(2),[0 0 syncWX-1 syncWY-1],[0 screenRes.height-syncWY syncWX-1 screenRes.height-1]);
+Screen(screenPTR, 'Flip');
+
+

@@ -1,0 +1,163 @@
+
+Operating System: 
+Microsoft Windows XP [Version 5.1.2600] 
+
+
+MATLAB version: 
+7.0.0.19920 (R14)
+
+Data Acquisition Toolbox version: 
+       Name: 'Data Acquisition Toolbox'
+    Version: '2.5'
+    Release: '(R14)'
+       Date: '05-May-2004'
+
+
+----------MATLAB root directory: ----------
+C:\MATLAB7
+
+----------MATLAB path: ----------
+
+		MATLABPATH
+
+	C:\MATLAB7\toolbox\matlab\general
+	C:\MATLAB7\toolbox\matlab\ops
+	C:\MATLAB7\toolbox\matlab\lang
+	C:\MATLAB7\toolbox\matlab\elmat
+	C:\MATLAB7\toolbox\matlab\elfun
+	C:\MATLAB7\toolbox\matlab\specfun
+	C:\MATLAB7\toolbox\matlab\matfun
+	C:\MATLAB7\toolbox\matlab\datafun
+	C:\MATLAB7\toolbox\matlab\polyfun
+	C:\MATLAB7\toolbox\matlab\funfun
+	C:\MATLAB7\toolbox\matlab\sparfun
+	C:\MATLAB7\toolbox\matlab\scribe
+	C:\MATLAB7\toolbox\matlab\graph2d
+	C:\MATLAB7\toolbox\matlab\graph3d
+	C:\MATLAB7\toolbox\matlab\specgraph
+	C:\MATLAB7\toolbox\matlab\graphics
+	C:\MATLAB7\toolbox\matlab\uitools
+	C:\MATLAB7\toolbox\matlab\strfun
+	C:\MATLAB7\toolbox\matlab\imagesci
+	C:\MATLAB7\toolbox\matlab\iofun
+	C:\MATLAB7\toolbox\matlab\audiovideo
+	C:\MATLAB7\toolbox\matlab\timefun
+	C:\MATLAB7\toolbox\matlab\datatypes
+	C:\MATLAB7\toolbox\matlab\verctrl
+	C:\MATLAB7\toolbox\matlab\codetools
+	C:\MATLAB7\toolbox\matlab\helptools
+	C:\MATLAB7\toolbox\matlab\winfun
+	C:\MATLAB7\toolbox\matlab\demos
+	C:\MATLAB7\toolbox\local
+	C:\MATLAB7\toolbox\simulink\simulink
+	C:\MATLAB7\toolbox\simulink\blocks
+	C:\MATLAB7\toolbox\simulink\components
+	C:\MATLAB7\toolbox\simulink\fixedandfloat
+	C:\MATLAB7\toolbox\simulink\fixedandfloat\fxpdemos
+	C:\MATLAB7\toolbox\simulink\fixedandfloat\obsolete
+	C:\MATLAB7\toolbox\simulink\simdemos
+	C:\MATLAB7\toolbox\simulink\simdemos\aerospace
+	C:\MATLAB7\toolbox\simulink\simdemos\automotive
+	C:\MATLAB7\toolbox\simulink\simdemos\simfeatures
+	C:\MATLAB7\toolbox\simulink\simdemos\simfeatures\mdlref
+	C:\MATLAB7\toolbox\simulink\simdemos\simgeneral
+	C:\MATLAB7\toolbox\simulink\simdemos\simnew
+	C:\MATLAB7\toolbox\simulink\dee
+	C:\MATLAB7\toolbox\shared\dastudio
+	C:\MATLAB7\toolbox\stateflow\stateflow
+	C:\MATLAB7\toolbox\rtw\rtw
+	C:\MATLAB7\toolbox\shared\hds
+	C:\MATLAB7\toolbox\shared\timeseries
+	C:\MATLAB7\toolbox\stateflow\sfdemos
+	C:\MATLAB7\toolbox\stateflow\coder
+	C:\MATLAB7\toolbox\rtw\rtwdemos
+	C:\MATLAB7\toolbox\rtw\rtwdemos\rsimdemos
+	C:\MATLAB7\toolbox\rtw\targets\asap2\asap2
+	C:\MATLAB7\toolbox\rtw\targets\asap2\asap2\user
+	C:\MATLAB7\toolbox\rtw\targets\rtwin\rtwin
+	C:\MATLAB7\toolbox\simulink\accelerator
+	C:\MATLAB7\toolbox\rtw\accel
+	C:\MATLAB7\toolbox\compiler
+	C:\MATLAB7\toolbox\control\control
+	C:\MATLAB7\toolbox\control\ctrlguis
+	C:\MATLAB7\toolbox\control\ctrlobsolete
+	C:\MATLAB7\toolbox\control\ctrlutil
+	C:\MATLAB7\toolbox\control\ctrldemos
+	C:\MATLAB7\toolbox\shared\controllib
+	C:\MATLAB7\toolbox\daq\daq
+	C:\MATLAB7\toolbox\daq\daqguis
+	C:\MATLAB7\toolbox\daq\daqdemos
+	C:\MATLAB7\toolbox\exlink
+	C:\MATLAB7\toolbox\symbolic\extended
+	C:\MATLAB7\toolbox\ident\ident
+	C:\MATLAB7\toolbox\ident\idobsolete
+	C:\MATLAB7\toolbox\ident\idguis
+	C:\MATLAB7\toolbox\ident\idutils
+	C:\MATLAB7\toolbox\ident\iddemos
+	C:\MATLAB7\toolbox\ident\idhelp
+	C:\MATLAB7\toolbox\images\images
+	C:\MATLAB7\toolbox\images\imdemos
+	C:\MATLAB7\toolbox\imaq\imaq
+	C:\MATLAB7\toolbox\imaq\imaqdemos
+	C:\MATLAB7\toolbox\instrument\instrument
+	C:\MATLAB7\toolbox\instrument\instrumentdemos
+	C:\MATLAB7\toolbox\nnet\nnet
+	C:\MATLAB7\toolbox\nnet\nnutils
+	C:\MATLAB7\toolbox\nnet\nncontrol
+	C:\MATLAB7\toolbox\nnet\nndemos
+	C:\MATLAB7\toolbox\nnet\nnobsolete
+	C:\MATLAB7\toolbox\optim
+	C:\MATLAB7\toolbox\shared\optimlib
+	C:\MATLAB7\toolbox\pde
+	C:\MATLAB7\toolbox\simulink\reqmgt
+	C:\MATLAB7\toolbox\simulink\reqmgt\rmidemos
+	C:\MATLAB7\toolbox\signal\signal
+	C:\MATLAB7\toolbox\signal\sigtools
+	C:\MATLAB7\toolbox\signal\sptoolgui
+	C:\MATLAB7\toolbox\signal\sigdemos
+	C:\MATLAB7\toolbox\slcontrol\slcontrol
+	C:\MATLAB7\toolbox\slcontrol\slctrlguis
+	C:\MATLAB7\toolbox\slcontrol\slctrlutil
+	C:\MATLAB7\toolbox\slcontrol\slctrldemos
+	C:\MATLAB7\toolbox\shared\slcontrollib
+	C:\MATLAB7\toolbox\simulink\slvnv
+	C:\MATLAB7\toolbox\simulink\simcoverage
+	C:\MATLAB7\toolbox\simulink\simcoverage\simcovdemos
+	C:\MATLAB7\toolbox\splines
+	C:\MATLAB7\toolbox\stats
+	C:\MATLAB7\toolbox\symbolic
+	C:\MATLAB7\toolbox\wavelet\wavelet
+	C:\MATLAB7\toolbox\wavelet\wavedemo
+	C:\MATLAB7\work
+
+----------Testing matrox adaptor for:----------
+
+----------Registering adaptor: matrox----------
+Warning: 'matrox.dll' not found.  Make sure it is on the MATLAB path.
+
+Successfully registered matrox adaptor
+
+----------Available hardware: ----------
+
+          ToolboxName: 'Data Acquisition Toolbox'
+       ToolboxVersion: '2.5 (R14)'
+        MATLABVersion: '7.0 (R14)'
+    InstalledAdaptors: {2x1 cell}
+
+
+----------Toolbox Version: ----------
+
+2.5 (R14)
+
+Error displaying DAQHWINFO for adaptor matrox
+Error using ==> daqhwinfo
+Error using ==> daqhwinfo
+Failure to open requested data acquisition device matrox Class not registered
+
+--------------------End test--------------------
+
+This information has been saved in the text file:
+daqtest.txt
+
+If any errors occurred, please e-mail this information to:
+support@mathworks.com

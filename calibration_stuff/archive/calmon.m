@@ -1,0 +1,187 @@
+function [red green blue] = calmon(ofile)
+
+%% calmon     A function to compute the linearized lookup tables and 
+%%            cone directions given the luminance data (in Cd/m^2)
+%%            and CIE (x,y) coordinates of each gun.
+%%            
+%%            'lumdata' should be a 256 by 3 matrix whose first column contains
+%%            an integer value (index) for the gun, the next three columns 
+%%            should contain the luminance value obtained for the red,
+%%            green, and blue guns for that index value.
+%%
+%%            'xy' should be a 3 by 2 matrix.  The first row is the (x,y)
+%%            CIE coordinates at half-amplitude for the red gun, and the
+%%            second and third rows are (x,y) coords for the green and
+%%            blue guns.
+%%
+%%            The function returns an N by 4 matrix with the linearizing
+%%            lookup tables for the red, green, and blue guns, as well as
+%%            a 3 by 3 matrix whose rows give the modulations of the guns
+%%            required to produce cone isolating stimuli in the L, M, and
+%%            S directions.
+
+root = '/Matlab_code/calibration_stuff/measurements/';
+
+monitor = 'CRT 5-18-10 PR650/';
+
+Sens_root = '/Matlab_code/calibration_stuff/sensitivity data/';
+
+
+%The following was created with makegammaLUT.m:
+load([root monitor 'LUT.mat'],'L')
+size(L)
+figure, plot(0:255,L)
+
+
+%% Now the spectral data
+
+figure,clf;
+
+red   = read_spectrum(root,monitor,'red');    %% from calibration
+green = read_spectrum(root,monitor,'green');
+blue  = read_spectrum(root,monitor,'blue');
+
+red(:,2) = red(:,2)/L(end,1);
+green(:,2) = green(:,2)/L(end,2);
+blue(:,2) = blue(:,2)/L(end,3);
+%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%
+
+plot(red(:,1),red(:,2),'r',green(:,1),green(:,2),'g',blue(:,1),blue(:,2),'b');
+
+%SS = read_sensitivity(Sens_root);  %luminosity function (CIE 1931)
+lms = read_LMS(Sens_root);  %% load cone spectral sensitivity data (Stockman & Sharpe 2000)
+
+redi   = interp1(red(:,1),red(:,2),lms(:,1),'spline');
+greeni = interp1(green(:,1),green(:,2),lms(:,1),'spline');
+bluei  = interp1(blue(:,1),blue(:,2),lms(:,1),'spline'); 
+
+%SSi = interp1(SS(:,1),SS(:,2),lms(:,1),'spline');
+
+RGB = [redi greeni bluei];
+T = RGB'*lms(:,2:end);   %% dot products
+Ti=inv(T);
+Ti(1,:) = Ti(1,:)./max(abs(Ti(1,:)));
+Ti(2,:) = Ti(2,:)./max(abs(Ti(2,:)));
+Ti(3,:) = Ti(3,:)./max(abs(Ti(3,:)));
+
+disp(sprintf('L-cone isolating at: %f %f %f',Ti(1,:)));
+disp(sprintf('M-cone isolating at: %f %f %f',Ti(2,:)));
+disp(sprintf('S-cone isolating at: %f %f %f',Ti(3,:)));
+
+rg = (T(1,1)+T(1,2))/(T(2,1)+T(2,2));
+disp(sprintf('Red/Green Isoluminance at ratio of: %f',rg)); 
+
+%%%%%%%%%%%%%%%%%
+
+%%%%%
+
+%Null Luminance & S ("L+M direction"):  Magnitude of L to M contrast ratio
+%made to equal that in the L-M isoluminant case
+dLMS = [1 1.75 0];  gain = [-1.0 .9104 -.0984]; LMScont = [.2737 .5486 0.0]; Totalcont = 0.6131
+
+%Null Luminance & S ("L-M direction"):  
+dLMS = [1 -1.75 0];  gain = [1.0 -.3578 .0257]; LMScont = [.0708 -.1422 0.0]; Totalcont = 0.1588
+
+%Null Luminance ("S + (L-M)  direction"):  
+dLMS = [1 -1.75 1.1];  gain = [1.0 -.3782 .1819]; LMScont = [.069 -.1386 0.1353]; Totalcont = 0.2056;
+
+%"S isolation"  %use nullfuncs of lms
+dLMS = [0 0 1];  gain = [.1582 -.1965 1.0];  LMScont = [0 0 .838]; Total = 0.838
+
+%Null Luminance (" S - (L-M)  direction"):  
+dLMS = [-1 1.75 1.1];  gain = [-1.0 .3318 .1477]; LMScont = [-.0727 .1458 0.1426]; Totalcont = 0.2165;
+
+%%%Luminance contrast = 1.2062
+
+nullfuncs = lms(:,2:end)';
+%nullfuncs = [SSi'; lms(:,2)'-lms(:,3)'; lms(:,4)'];  %lumSensitivity, L-M, S 
+
+dLMS = [1 1.75 0]';  %Ratio of response differences for each cone
+
+T = nullfuncs*RGB;   %% dot products
+Ti=inv(T);
+Liso = Ti*dLMS;
+Liso = Liso/max(abs(Liso))  %ratio of gain values for gun modulaton
+
+%%%%%
+
+%This next stuff is what happens in Dario's C code
+
+Rlin = linspace(L(1,1),L(end,1),256);
+Glin = linspace(L(1,2),L(end,2),256);
+Blin = linspace(L(1,3),L(end,3),256);
+
+Rlin = (Rlin-Rlin(128))*Liso(1) + Rlin(128);
+Glin = (Glin-Glin(128))*Liso(2) + Glin(128);
+Blin = (Blin-Blin(128))*Liso(3) + Blin(128);
+
+%Estimate min/mid/max spectra using scaling coefficients  
+%Spectra were computed at the maximum buffer value
+SPECmin = RGB*[Rlin(1)  Glin(1)  Blin(1)]'; %spectrum at trough
+SPECmax = RGB*[Rlin(end) Glin(end)  Blin(end)]'; %spectrum at peak
+
+
+Rmax = lms(:,2:end)'*SPECmax;
+Rmin = lms(:,2:end)'*SPECmin;
+Rmean = (Rmax+Rmin)/2;
+LMSContrast = (Rmax-Rmin)./(2*Rmean)
+TotalContrast = norm(LMSContrast)
+
+
+%%%%%%%%%%%
+
+
+close all
+
+
+
+function L = read_sensitivity(root);
+f = [root 'SSfunc.txt'];
+fid = fopen(f,'r');
+L = [];
+
+l = fgetl(fid);
+while(l ~= -1)
+    s = sscanf(l,'%f,%f');
+    L = [L;s'];
+    %l = fgetl(fid); %% emtpy line
+    l = fgetl(fid);
+end
+
+
+function L = read_LMS(root)
+
+f = [root 'StockmanSharpe.txt'];
+fid = fopen(f,'r');
+L = [];
+
+l = fgetl(fid);
+while(l ~= -1)
+    s = sscanf(l,'%f,%f,%f,%f');
+    if length(s) == 3
+        s = [s; 0];
+    end
+    L = [L;s'];
+    %l = fgetl(fid); %% emtpy line
+    l = fgetl(fid);
+end
+
+function S = read_spectrum(root,monitor,gun)
+
+f = [root monitor 'spectrum_' gun];
+fid = fopen(f,'r');
+
+for(i=1:6)
+    fgetl(fid);
+end
+
+S = [];
+l = fgetl(fid);
+while(l ~= -1)
+    s = sscanf(l,'%f,%f');
+    S = [S;s'];
+    l = fgetl(fid);  %% empty line
+    l = fgetl(fid);
+end
+
