@@ -10,10 +10,10 @@ switch Mstate.monitor
     
     case 'LCD' 
         
-        Mstate.screenXcm = 33.7;
-        Mstate.screenYcm = 27;
-        Mstate.xpixels = 1024;
-        Mstate.ypixels = 768;
+        Mstate.screenXcm = 59;
+        Mstate.screenYcm = 33.5;
+        Mstate.xpixels = 2560;
+        Mstate.ypixels = 1440;
 
     case 'CRT'
 

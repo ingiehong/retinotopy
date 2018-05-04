@@ -1,10 +1,14 @@
 %% Look in GettingStarted_SetupDisplay for calibrated parameters
 %these lines set up the master instance of MATLAB
+%automatically look for ip address in matlab with JAVA code
+%h = java.net.InetAddress.getLocalHost();
+%ipAddress = char(h.getHostAddress().toString());
 close all; clear all; 
 cd('C:\Users\Ingie\Documents\My Code\Callaway_ISI\Stimulator_master');
 addpath(genpath(pwd));
 which configDisplayCom
 configDisplayCom %run up to here
+%%
 %white listing files from imager directory
 %addpath('C:\Users\Ingie\Documents\My Code\Callaway_ISI\imager\sendtoImager.m');
 %addpath('C:\Users\Ingie\Documents\My Code\Callaway_ISI\imager\checkforOverwrite.m');
@@ -18,7 +22,7 @@ cd('C:\Users\Ingie\Documents\My Code\Callaway_ISI\Stimulator_slave');
 %IP address of Ingies' lab computer '10.194.195.180';
 addpath(genpath(pwd));
 configureDisplay;
-
+%Screen('Preference', 'SkipSyncTests', 1)
 %% these lines set up the imager from Master MATLAB instance
 cd('C:\Users\Ingie\Documents\My Code\Callaway_ISI\imager');
 imager

@@ -51,14 +51,20 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
         
        % stop(analogIN)  %Stop sampling acquistion and stimulus syncs  %GMH
        % commented out
+  %     keyboard
       % [syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] =
       % getSyncTimes;   %GMH
       %  syncInfo.dSyncswave = [];  %Just empty it for now %GMH
       %  saveSyncInfo(syncInfo)  %append .analyzer file %GMH
         
         %[looperInfo.conds{c}.repeats{r}.dispSyncs looperInfo.conds{c}.repeats{r}.acqSyncs looperInfo.conds{c}.repeats{r}.dSyncswave] = getSyncTimes;
-        
-  %      onlineAnalysis(c,r,syncInfo)     %Compute F1 GMH commented out
+        %C:\Users\Ingie\Documents\imager_data\L54
+        % GMH creating syncInfo from example data
+   %     load('C:\Users\Ingie\Documents\imager_data\L54\L54_u000_001.analyzer','-mat'); %GMH
+    %    syncInfo.dispSyncs=syncInfo1.dispSyncs; %GMH
+     %   syncInfo.acqSyncs=syncInfo1.acqSyncs; %GMH
+        %%%original code
+        onlineAnalysis(c,r,syncInfo)     %Compute F1 GMH commented out
 
         
     end

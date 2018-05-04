@@ -26,7 +26,7 @@ function varargout = imager(varargin)
 
 % Edit the above text to modify the response to help imager
 
-% Last Modified by GUIDE v2.5 26-Jul-2009 19:37:12
+% Last Modified by GUIDE v2.5 21-Aug-2009 16:16:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -65,7 +65,7 @@ FPS = 10;  %% frames per second
 
 %%  serial communication...
 
-delete(instrfind);  %% Delete them ALL!!!!
+delete(instrfind)
 
 % The smarthome X10 link
 
@@ -1363,6 +1363,7 @@ img = imagerhandles.milimg.Get(zz,IMGSIZE^2,-1,ROIcrop(1),ROIcrop(2),ROIcrop(3),
 
 grab.img = img;       %% image
 grab.clock = clock;   %% time stamp
+grab.ROIcrop = ROIcrop;
 figure(10);
 imagesc(grab.img'),axis off, colormap gray; truesize
 r = questdlg('Do you want to save it?','Single Grab','Yes','No','Yes');
@@ -1694,7 +1695,7 @@ if(strcmp(r,'Yes'))
 end
 close(10)
 
-save(C:\imager)
+save('C:\imager\lastROI','ROIcrop')
 
 function hwroisizetxt_Callback(hObject, eventdata, handles)
 % hObject    handle to hwroisizetxt (see GCBO)
@@ -1754,3 +1755,14 @@ function resetCrop_Callback(hObject, eventdata, handles)
 global IMGSIZE ROIcrop
 
 ROIcrop = [0 0 IMGSIZE IMGSIZE];
+
+
+% --- Executes on button press in getLastROI.
+function getLastROI_Callback(hObject, eventdata, handles)
+% hObject    handle to getLastROI (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global ROIcrop
+
+load('C:\imager\lastROI','ROIcrop')
+ROIcrop

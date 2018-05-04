@@ -11,8 +11,8 @@ switch Mstate.monitor
       %  Mstate.screenXcm = 33.7;  %Smaller LCD
       %  Mstate.screenYcm = 18; %27;
         
-        Mstate.screenXcm = 51;  %New big LCD
-        Mstate.screenYcm = 28.5;
+        Mstate.screenXcm = 59;
+        Mstate.screenYcm = 33.5;
        load('C:\Users\Ingie\Documents\My Code\GraceHwang\Slave\Stimulator_slave\calibration_stuff\measurements\LCD (big) 1-8-11\LUT.mat', 'bufLUT'); %GMH
 
        %load('/Matlab_code/calibration_stuff/measurements/LCD (big) 1-8-11/LUT.mat','bufLUT')
@@ -45,9 +45,9 @@ switch Mstate.monitor
     case 'LIN'   %load a linear table
         
        % Mstate.screenXcm = 32.5;
-       % Mstate.screenYcm = 24;        
-        Mstate.screenXcm = 51;   % GMH
-        Mstate.screenYcm = 28.5; % GMH  
+       % Mstate.screenYcm = 24;       
+        Mstate.screenXcm = 59;  %GMH
+        Mstate.screenYcm = 33.5; %GMH
         bufLUT = (0:255)/255;
         bufLUT = bufLUT'*[1 1 1];
         

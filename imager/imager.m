@@ -1425,6 +1425,7 @@ if(strcmp(r,'Yes'))
     fname = [fname '.mat'];
     fname(2) = ':';
     save(fname,'grab'); %GMH this is where raw file is saved to disk
+    keyboard
 end
 delete(10);
         

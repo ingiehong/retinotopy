@@ -155,7 +155,8 @@ function loadParams_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 global Pstate
-ddir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\Stimulator_master'
+%ddir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\Stimulator_master'
+ddir = 'C:\Users\Ingie\Documents\ISI_Data\ParamFiles';
 %[file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state','C:\Params&Loopers');
 [file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state',ddir);
 clear ddir

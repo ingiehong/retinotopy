@@ -15,4 +15,4 @@ Mstate.monitor = 'LIN';  %This should match the default at the master. Otherwise
 
 Mstate.running = 0;
 
-Mstate.syncSize = 4;  %cm %GMH should this be 34?
+Mstate.syncSize = 2;  %cm GMH should be cm, denotes photodiode placement

@@ -25,8 +25,8 @@ syncWY = round(pixpercmY*Mstate.syncSize);
 
 Mstate.refresh_rate = 1/Screen('GetFlipInterval', screenPTR);
 
-%SyncLoc = [0 screenRes.height-syncWY syncWX-1 screenRes.height-1]';
-SyncLoc = [0 0 syncWX-1 syncWY-1]';
+SyncLoc = [0 screenRes.height-syncWY syncWX-1 screenRes.height-1]'; %bottom left hand corner
+%SyncLoc = [0 0 syncWX-1 syncWY-1]'; %top lefthand corner
 SyncPiece = [0 0 syncWX-1 syncWY-1]';
 
 %Set the screen

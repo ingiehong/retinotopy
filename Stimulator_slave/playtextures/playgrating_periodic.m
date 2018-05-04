@@ -60,8 +60,8 @@ Npreframes = ceil(Pstruct.predelay*screenRes.hz);
 Npostframes = ceil(Pstruct.postdelay*screenRes.hz);
 
 %%%%
-%SyncLoc = [0 screenRes.height-syncWY syncWX-1 screenRes.height-1]';
-SyncLoc = [0 0 syncWX-1 syncWY-1]';
+SyncLoc = [0 screenRes.height-syncWY syncWX-1 screenRes.height-1]'; %GMH
+%SyncLoc = [0 0 syncWX-1 syncWY-1]';
 SyncPiece = [0 0 syncWX-1 syncWY-1]';
 StimLoc = [xran(1) yran(1) xran(2) yran(2)]';
 StimPiece = [0 0 TDim(2)-1 TDim(1)-1]';

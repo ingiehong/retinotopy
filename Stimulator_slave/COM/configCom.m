@@ -10,7 +10,10 @@ if ~isempty(varargin{1})
     rip = varargin{1}{1}
 else
    % rip = '10.1.38.88';  %2ph master 
-   rip = '10.194.195.180'; %Ingie's lab IP address
+%   rip = '10.194.195.180'; %Ingie's lab IP address
+    h = java.net.InetAddress.getLocalHost();
+    ipAddress = char(h.getHostAddress().toString());
+    rip = ipAddress; %'192.168.159.3';
    %rip = 10.101.69.51;
 end
 
@@ -47,7 +50,7 @@ stat=get(comState.serialPortHandle, 'Status');
 if ~strcmp(stat, 'open')
     disp([' StimConfig: trouble opening port; cannot proceed']);
     comState.serialPortHandle=[];
-    out=2; % GMH do I want this to be 2?
+    out=2; % GMH 
     return;
 end
 

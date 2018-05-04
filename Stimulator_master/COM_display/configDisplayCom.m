@@ -9,12 +9,19 @@ dbstop if error
 
 %close all open udp port objects on the same port and remove
 %the relevant object form the workspace
-Mstate.stimulusIDP ='10.194.195.180';
-% Ingie's desktop IP='10.194.195.180' %GMH
+
+%these lines set up the master instance of MATLAB
+%automatically look for ip address in matlab with JAVA code
+h = java.net.InetAddress.getLocalHost();
+ipAddress = char(h.getHostAddress().toString());
+Mstate.stimulusIDP = ipAddress;
+
+%Mstate.stimulusIDP = '192.168.159.3';
+% Ingie's desktop IP='10.194.195.180' %GMH in 2017
+
 port = instrfindall('RemoteHost',Mstate.stimulusIDP); %GMH
 %port = instrfindall('RemoteHost','192.168.0.104');
-%port='192.168.0.104';
-%port = '10.196.38.238';
+
 if length(port) > 0; 
     fclose(port); 
     delete(port);

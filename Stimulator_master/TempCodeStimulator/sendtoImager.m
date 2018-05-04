@@ -1,17 +1,20 @@
 function sendtoImager(cmd)
-
+dbstop if error
 global imagerhandles h;
 
 switch(cmd(1))
     case 'A'  %% animal
+        disp('In sendtoImager.m case A')
         set(findobj('Tag','animaltxt'),'String',deblank(cmd(3:end)));
         deblank(cmd(3:end))
 
     case 'E' %% expt      
+        disp('In sendtoImager.m case E')
         set(findobj('Tag','expttxt'),...
             'String',num2str(deblank(cmd(3:end))));
 
     case 'U'  %% unit
+        disp('In sendtoImager.m case U')
         set(findobj('Tag','unittxt'),...
             'String',num2str(deblank(cmd(3:end))));
 
@@ -20,14 +23,16 @@ switch(cmd(1))
 %             'String',deblank(sprintf('%03d',str2num(cmd(3:end)))));
 
     case 'M'  %% set mode
+        disp('In sendtoImager.m case m')
         m = str2num(cmd(3:end-1));
 
     case 'I'  %% total_time
+        disp('In sendtoImager.m case I')
         set(findobj('Tag','timetxt'),'String',deblank(cmd(3:end)));
         preallocateTensor
         
     case 'S'  %% start sampling...
-        
+        disp('In sendtoImager.m case S')
         trial = str2num(cmd(3:end));
 
         global nframes maxframes ...
@@ -41,41 +46,23 @@ switch(cmd(1))
         tag    = get(findobj('Tag','tagtxt'),'String');
 
         dd = [datadir '\' lower(animal) '\u' unit '_' expt];
-        
-        if trial == 0
-            if(~exist(dd))
-                proceed = 1;
-                mkdir(dd);
-            else
-                proceed = 0;
-                warndlg('Directory exists!!!  Make sure you are not overwritting old data!  Please check current animal, unit and expt values.  I will now abort this sampling request.','!!! Warning !!!')
-            end
-        else
-            proceed = 1;
-        end
+          
+        fname = sprintf('%s\\u%s_%s',dd,unit,expt);
+        fname = [fname  '_' sprintf('%03d',trial)];
+        nframes = 1;
+% 
+%         h = imagerhandles;
+%         h.mildig.set('GrabFrameEndEvent',0,'GrabEndEvent',...
+%             0,'GrabStartEvent',0);
+% 
+%         set(1,'Name','imager :: Sampling ::');
+%         drawnow;
+        %h.mildig.Image = h.buf{1};
 
-        if(proceed)
-            
-            fname = sprintf('%s\\u%s_%s',dd,unit,expt);
-            fname = [fname  '_' sprintf('%03d',trial)];
-            
-            nframes = 1;
-
-            h = imagerhandles;
-            h.mildig.set('GrabFrameEndEvent',0,'GrabEndEvent',...
-                0,'GrabStartEvent',0);
-            
-            set(1,'Name','imager :: Sampling ::');
-            drawnow;
-            %h.mildig.Image = h.buf{1};
-
-            
-            h = GrabSaveLoop(h,fname,parport);
-
-            set(1,'Name','imager');
-            drawnow;
-            
-
-        end
+% 
+     h = GrabSaveLoop(h,fname,parport);
+% 
+     set(1,'Name','imager');
+     drawnow;
 
 end

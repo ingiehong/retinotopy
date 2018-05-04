@@ -23,6 +23,7 @@ switch(cmd(1))
         m = str2num(cmd(3:end-1));
 
     case 'I'  %% total_time
+        %GMH this is where code goes to write files
         set(findobj('Tag','timetxt'),'String',deblank(cmd(3:end)));
         preallocateTensor
         
