@@ -7,7 +7,7 @@ Mstate.unit = '000';
 Mstate.expt = '000';
 
 Mstate.hemi = 'left';
-Mstate.screenDist = 10; %GMH need to ask Ingie about correct screen distance
+Mstate.screenDist = 20; %GMH need to ask Ingie about correct screen distance
 
 Mstate.monitor = 'LIN';  %This should match the default value in Display
 

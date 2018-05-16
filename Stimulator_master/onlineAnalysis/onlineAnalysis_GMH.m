@@ -7,10 +7,10 @@ global Tens looperInfo F1 GUIhandles
 if get(GUIhandles.main.analysisFlag,'value')
 %load('C:\Users\Ingie\Documents\ISI_Data\AnalyzerFiles\A71\A71_u000_001.analyzer', '-mat');
 %A71_u000_001.analyzer is modified based on L54_000_001.analyzer
-    %load('C:\Users\Ingie\Documents\imager_data\TEST\u004_020syncInfo');
+    load('C:\Users\Ingie\Documents\imager_data\TEST\test_u005_001syncInfo');
     %load file with syncInfo
     %Grabtimes = syncInfo.acqSyncs; % original code
-    Grabtimes = syncInfo.acqSyncs/10; % GMH % expected dimension = 1870x1 double
+    Grabtimes = syncInfo.acqSyncs; % GMH % expected dimension = 1870x1 double
     %Stimulus starts on 2nd sync, and ends on the second to last.  I also
     %get rid of the last bar rotation (dispSyncs(end-1)) in case it is not an integer multiple
     %of the stimulus trial length
@@ -38,14 +38,14 @@ if get(GUIhandles.main.analysisFlag,'value')
     %       clear im
     %   end
     
-    load('C:\Users\Ingie\Documents\imager_data\TEST\test_u004_020.mat');
+    load('C:\Users\Ingie\Documents\imager_data\TEST\test_u005_001.mat');
     firstPos=floor(syncInfo.dispSyncs(1)*10); %need to discuss this with Ingie. 15 second delay may be problematic
     lastPos=firstPos+1870-1;
    
     Tens=squeeze(im(:,:,1,firstPos:lastPos));  % need to think about how to locate 1870
     k = 1;
     for j=fidx(1):fidx(end)%original code
-%    for j=1:180 
+ %   for j=1:180 
         %hardcoded 1870 to avoid index exceed matrix error; orig code looped to fidx(end)
         
         img = 4096-double(Tens(:,:,j));
