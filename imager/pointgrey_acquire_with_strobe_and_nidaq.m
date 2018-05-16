@@ -15,7 +15,7 @@ daq.getDevices
 %%
   s =daq.createSession('ni');
   s.Rate=5000;
-  s.DurationInSeconds = 20; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
+  s.DurationInSeconds = 230; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
 
   ch_camera = addAnalogInputChannel(s,'dev1', 'ai0', 'Voltage'); %camera pulse set up
   ch_camera.TerminalConfig = 'SingleEnded'; 
@@ -25,8 +25,11 @@ daq.getDevices
   ch_stim.Range = [0, 5];
 %%
 saveFlag=1; %set to 1 to save image files
-fileID='test_u004_024'; % must manually update this ID each experiment
-savePath='C:\Users\Huganir lab\Documents\imager_data\TEST_04272018\';
+fileID='xx2_u000_010'; % must manually update this ID each experiment
+savePath='C:\Users\Huganir lab\Documents\imager_data\05092018\';
+if ~exist(savePath)
+    mkdir(savePath)
+end
 %%
 s.NotifyWhenDataAvailableExceeds = s.Rate*s.DurationInSeconds ; %50000;
 lh = addlistener(s,'DataAvailable',@plotData); 
@@ -98,8 +101,8 @@ function plotData(src,event)
     acqSyncTimes=cameraPulseInd/s.Rate; % this will end up being syncInfo.acqSyncs
     % convert photodiode pulse into start time
     temp1=sgolayfilt(data(:,2),27,51);%27,51); 15,27
-    temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=2)=5; 
-    PDchan=find(diff(temp2>2.5)==1);   
+    temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
+    PDchan=find(diff(temp2>1.5)==1);   
     dispSyncTimes=PDchan/s.Rate  %this will become syncInfo.dispSyncs
     figure; plot(timestamps(1:end), temp2, 'r');
     xlabel('Time (seconds)');
