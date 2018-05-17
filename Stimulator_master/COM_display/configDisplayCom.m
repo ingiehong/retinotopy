@@ -11,10 +11,13 @@ dbstop if error
 %the relevant object form the workspace
 
 %these lines set up the master instance of MATLAB
+
 %automatically look for ip address in matlab with JAVA code
-h = java.net.InetAddress.getLocalHost();
-ipAddress = char(h.getHostAddress().toString());
-Mstate.stimulusIDP = ipAddress;
+%% for autodetection IP on same computer
+% h = java.net.InetAddress.getLocalHost();
+% ipAddress = char(h.getHostAddress().toString());
+% Mstate.stimulusIDP = ipAddress;
+Mstate.stimulusIDP = '10.194.132.250';
 
 %Mstate.stimulusIDP = '192.168.159.3';
 % Ingie's desktop IP='10.194.195.180' %GMH in 2017

@@ -7,7 +7,7 @@ Mstate.unit = '000';
 Mstate.expt = '000';
 
 Mstate.hemi = 'left';
-Mstate.screenDist = 20; %GMH need to ask Ingie about correct screen distance
+Mstate.screenDist = 10; %GMH need to ask Ingie about correct screen distance
 
 Mstate.monitor = 'LIN';  %This should match the default value in Display
 
@@ -25,6 +25,9 @@ Mstate.analyzerRoot = 'C:\Users\Ingie\Documents\imager_data';
 %update path for Huganir system
 %Mstate.stimulusIDP = '10.194.195.180';  %Neighbor (ISI computer) %GMH update this
 %Mstate.stimulusIDP = '172.0.0.1';
-h = java.net.InetAddress.getLocalHost();
-ipAddress = char(h.getHostAddress().toString());
-Mstate.stimulusIDP = ipAddress; % '192.168.159.3';
+Mstate.stimulusIDP = '10.194.132.250';
+
+%% for autodetection IP on same computer
+% h = java.net.InetAddress.getLocalHost();
+% ipAddress = char(h.getHostAddress().toString());
+% Mstate.stimulusIDP = ipAddress; % '192.168.159.3';  
