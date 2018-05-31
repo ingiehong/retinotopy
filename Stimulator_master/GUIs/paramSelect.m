@@ -156,7 +156,7 @@ function loadParams_Callback(hObject, eventdata, handles)
 
 global Pstate
 %ddir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\Stimulator_master'
-ddir = 'C:\Users\Ingie\Documents\My Code\Callaway_ISI\Stimulator_master\ParamFiles';
+ddir = [fileparts(which('ISI_Master')) filesep 'Stimulator_master' filesep 'ParamFiles'];
 %[file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state','C:\Params&Loopers');
 [file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state',ddir);
 clear ddir
@@ -193,7 +193,7 @@ function saveParams_Callback(hObject, eventdata, handles)
 
 global Pstate
 
-[file path] = uiputfile('*.param','Save as','C:\Users\Ingie\Documents\My Code\Callaway_ISI\Stimulator_master\ParamFiles');
+[file path] = uiputfile('*.param','Save as', [fileparts(which('ISI_Master')) filesep 'Stimulator_master' filesep 'ParamFiles'] );
 
 if file  %if 'cancel' was not pressed
     file = [path file];
