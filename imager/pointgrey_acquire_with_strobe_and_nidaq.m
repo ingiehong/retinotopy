@@ -7,44 +7,71 @@
 % Revision 4/27/2018 Added commands to save image from memory
 % Revision 4/28/2018 Added code to save syncInfo structure containing
 % dispSyncs and acqSyncs.
+% Revision 5/30/2018 Added new camera code to allow settings to be changed
+% from within MATLAB
 
 global fileID savePath s
 
-daq.getDevices
+daq.getDevices;
 
 %%
   s =daq.createSession('ni');
   s.Rate=5000;
-  s.DurationInSeconds = 230; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
+  s.DurationInSeconds = 20; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
 
   ch_camera = addAnalogInputChannel(s,'dev1', 'ai0', 'Voltage'); %camera pulse set up
   ch_camera.TerminalConfig = 'SingleEnded'; 
-  ch_camera.Range = [0, 5];
+  ch_camera.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008 
   ch_stim = addAnalogInputChannel(s,'dev1','ai1', 'Voltage');     %Photodiode set up
   ch_stim.TerminalConfig = 'SingleEnded';
-  ch_stim.Range = [0, 5];
+  ch_stim.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008 
 %%
 saveFlag=1; %set to 1 to save image files
-fileID='xx2_u000_010'; % must manually update this ID each experiment
-savePath='C:\Users\Huganir lab\Documents\imager_data\05092018\';
+%animID='xx0_u000_003'; % must manually update this ID each experiment
+fileID=['Widefield_' datestr(now, 'yyyy-mm-dd_HHMMSS') ];
+savePath='C:\Users\Huganir lab\Documents\imager_data\05302018\';
 if ~exist(savePath)
     mkdir(savePath)
 end
 %%
 s.NotifyWhenDataAvailableExceeds = s.Rate*s.DurationInSeconds ; %50000;
 lh = addlistener(s,'DataAvailable',@plotData); 
-%vid = videoinput('pointgrey', 1, 'F7_Raw16_1920x1200_Mode7');
+
+%% Camera initialization
+
 vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
 src = getselectedsource(vid);
-src.ExposureMode = 'Manual';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+preview(vid)  % Turn on preview to allow change of FrameRate (possibly bug)
 src.FrameRateMode = 'Manual';
-src.GainMode = 'Manual';
-src.GammaMode = 'Manual';
-src.SharpnessMode = 'Manual';
-src.ShutterMode = 'Manual';
 src.FrameRate = 10;
+stoppreview(vid);
+closepreview(vid);
+
+srcinfo=propinfo(src,'Shutter');
+if srcinfo.ConstraintValue(2)<30
+    error('Shutter could not be set to 30ms. Please restart Matlab and try again.')
+end
+src.ShutterMode = 'Manual';
 src.Shutter=30;
 src.Gain=10;
+src.GammaMode = 'Manual';
+src.SharpnessMode = 'Manual';
+src.ExposureMode = 'Manual';
+
+%vid = videoinput('pointgrey', 1, 'F7_Raw16_1920x1200_Mode7');
+% vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
+% src = getselectedsource(vid);
+% src.ExposureMode = 'Manual';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+% src.FrameRateMode = 'Manual';
+% src.GainMode = 'Manual';
+% src.GammaMode = 'Manual';
+% src.SharpnessMode = 'Manual';
+% src.ShutterMode = 'Manual';
+% src.FrameRate = 10;
+% src.Shutter=30;
+% src.Gain=10;
+
 %if abs(src.Shutter-99.5003) > 1 
 %    error('Wrong framerate or shutter time. Run FlyCapture and set framerate to 10FPS.')
 %end
@@ -57,7 +84,8 @@ vid.FramesPerTrigger = s.DurationInSeconds*src.FrameRate ;
 preview(vid);
 disp('Preview started')
 %pause(3)
-%start acquisition
+
+%% Start acquisition -- run this section after initial set up
 startBackground(s);
 pause(1)
 src.Strobe2 = 'On';
@@ -75,6 +103,9 @@ if saveFlag==1  % change to 1 to save mat files
     save([ savePath fileID '.mat'], 'im');
 %    clear im;   
 end
+
+stoppreview(vid);
+closepreview(vid);
 
 %%
 function plotData(src,event)
