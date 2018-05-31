@@ -22,7 +22,7 @@ function varargout = paramSelect(varargin)
 
 % Edit the above text to modify the response to help paramSelect
 
-% Last Modified by GUIDE v2.5 22-Dec-2017 12:35:36
+% Last Modified by GUIDE v2.5 17-May-2018 18:50:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -156,7 +156,7 @@ function loadParams_Callback(hObject, eventdata, handles)
 
 global Pstate
 %ddir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\Stimulator_master'
-ddir = 'C:\Users\Ingie\Documents\ISI_Data\ParamFiles';
+ddir = 'C:\Users\Ingie\Documents\My Code\Callaway_ISI\Stimulator_master\ParamFiles';
 %[file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state','C:\Params&Loopers');
 [file path] = uigetfile({'*.param';'*.analyzer'},'Load parameter state',ddir);
 clear ddir
@@ -193,7 +193,7 @@ function saveParams_Callback(hObject, eventdata, handles)
 
 global Pstate
 
-[file path] = uiputfile('*.param','Save as');
+[file path] = uiputfile('*.param','Save as','C:\Users\Ingie\Documents\My Code\Callaway_ISI\Stimulator_master\ParamFiles');
 
 if file  %if 'cancel' was not pressed
     file = [path file];

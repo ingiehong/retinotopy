@@ -9,12 +9,13 @@ global comState
 if ~isempty(varargin{1})
     rip = varargin{1}{1}
 else
-   % rip = '10.1.38.88';  %2ph master 
-%   rip = '10.194.195.180'; %Ingie's lab IP address
-    h = java.net.InetAddress.getLocalHost();
-    ipAddress = char(h.getHostAddress().toString());
-    rip = ipAddress; %'192.168.159.3';
-   %rip = 10.101.69.51;
+    % For self-IP
+%     h = java.net.InetAddress.getLocalHost();
+%     ipAddress = char(h.getHostAddress().toString());
+%     rip = ipAddress; 
+    rip = '10.194.190.56';
+    % rip = '10.1.38.88';  %2ph master 
+    % rip = '10.194.195.180'; %Ingie's lab IP address
 end
 
 % close all open serial port objects on the same port and remove
