@@ -17,7 +17,7 @@ daq.getDevices;
 %%
   s =daq.createSession('ni');
   s.Rate=5000;
-  s.DurationInSeconds = 20; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
+  s.DurationInSeconds = 100; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
 
   ch_camera = addAnalogInputChannel(s,'dev1', 'ai0', 'Voltage'); %camera pulse set up
   ch_camera.TerminalConfig = 'SingleEnded'; 
@@ -101,7 +101,7 @@ src.Strobe2 = 'Off';
 if saveFlag==1  % change to 1 to save mat files
     im = getdata(vid);
     save([ savePath fileID '.mat'], 'im');
-%    clear im;   
+    clear im;   
 end
 
 stoppreview(vid);
@@ -145,7 +145,7 @@ function plotData(src,event)
     syncInfo={};
         syncInfo=setfield(syncInfo, 'dispSyncs', dispSyncTimes);
         syncInfo=setfield(syncInfo, 'acqSyncs', acqSyncTimes);
-    save([ savePath '_' fileID '_syncInfo'], 'syncInfo' );
+    save([ savePath fileID '_syncInfo'], 'syncInfo' );
 disp(['saving ...' fileID ])
 end
 
