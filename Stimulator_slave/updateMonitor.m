@@ -46,10 +46,8 @@ switch Mstate.monitor
         
        % Mstate.screenXcm = 32.5;
        % Mstate.screenYcm = 24;       
-%        Mstate.screenXcm = 59;  %GMH
-%        Mstate.screenYcm = 33.5; %GMH
-         Mstate.screenXcm = 33.5;  %GMH
-         Mstate.screenYcm = 59; %GMH
+        Mstate.screenXcm = 59;  %GMH
+        Mstate.screenYcm = 33.5; %GMH
         bufLUT = (0:255)/255;
         bufLUT = bufLUT'*[1 1 1];
         
