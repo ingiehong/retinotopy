@@ -2,7 +2,7 @@ function configureMstate
 
 global Mstate
 
-Mstate.anim = 'xx0';
+Mstate.anim = datestr(now, 'yymmdd');
 Mstate.unit = '000';
 Mstate.expt = '000';
 
@@ -21,11 +21,11 @@ Mstate.running = 0;
 %Mstate.analyzerRoot = 'C:\neurodata\AnalyzerFiles_new';
 %Mstate.analyzerRoot = 'C:\Users\hwanggm1\Documents\data\Retinopathy\AnalyzerFiles' %GMH
 
-Mstate.analyzerRoot = 'C:\Users\Ingie\Documents\imager_data';
+Mstate.analyzerRoot = 'C:\Users\Huganir lab\Documents\imager_data';
 %update path for Huganir system
 %Mstate.stimulusIDP = '10.194.195.180';  %Neighbor (ISI computer) %GMH update this
 %Mstate.stimulusIDP = '172.0.0.1';
-Mstate.stimulusIDP = '10.194.132.250';
+Mstate.stimulusIDP = '10.194.213.208';
 
 %% for autodetection IP on same computer
 % h = java.net.InetAddress.getLocalHost();

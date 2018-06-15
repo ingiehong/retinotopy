@@ -882,6 +882,8 @@ function animaltxt_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+
+hObject.set('String', datestr(now, 'yymmdd') )
 if ispc
     set(hObject,'BackgroundColor','white');
 else

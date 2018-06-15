@@ -28,8 +28,8 @@ daq.getDevices;
 %%
 saveFlag=1; %set to 1 to save image files
 %animID='xx0_u000_003'; % must manually update this ID each experiment
-fileID=['Widefield_' datestr(now, 'yyyy-mm-dd_HHMMSS') ];
-savePath='C:\Users\Huganir lab\Documents\imager_data\05302018\';
+fileID=['Widefield_' datestr(now, 'yymmdd_HHMMSS') ];
+savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
 if ~exist(savePath)
     mkdir(savePath)
 end
@@ -54,7 +54,7 @@ if srcinfo.ConstraintValue(2)<30
 end
 src.ShutterMode = 'Manual';
 src.Shutter=30;
-src.Gain=10;
+src.Gain=1;
 src.GammaMode = 'Manual';
 src.SharpnessMode = 'Manual';
 src.ExposureMode = 'Manual';
@@ -141,11 +141,11 @@ function plotData(src,event)
     title('Photodiode Pulse');
 %create structure syncInfo
 %syncInfo.dispSyncs
-    dtg=char(datetime('now','TimeZone','local','Format','MMddHHmm'));
+    %dtg=char(datetime('now','TimeZone','local','Format','MMddHHmm'));
     syncInfo={};
         syncInfo=setfield(syncInfo, 'dispSyncs', dispSyncTimes);
         syncInfo=setfield(syncInfo, 'acqSyncs', acqSyncTimes);
-    save([ savePath dtg '_' fileID 'syncInfo'], 'syncInfo' );
+    save([ savePath '_' fileID '_syncInfo'], 'syncInfo' );
 disp(['saving ...' fileID ])
 end
 

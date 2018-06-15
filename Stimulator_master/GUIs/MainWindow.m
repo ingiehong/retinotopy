@@ -318,6 +318,8 @@ end
 %'playsample'.  Otherwise it will open the shutter.
 %set(GUIhandles.param.playSample,'enable','off')
 
+%exptcb_Callback(hObject.exptcb, eventdata,handles);
+
 
 % --- Executes on button press in unitcb.
 function unitcb_Callback(hObject, eventdata, handles)
