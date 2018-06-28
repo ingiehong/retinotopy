@@ -11,15 +11,16 @@
 % from within MATLAB
 % Massive revision June 2018
 
-global fileID savePath analogIN
+global fileID savePath analogIN lh
 
 daq.getDevices;
 
-%%
+%% configSyncInput.m
+
 analogIN =daq.createSession('ni');
 analogIN.Rate=5000;
 %analogIN.IsContinuous = true ; continuous sampling relies on CPU to start/stop and is not accurate enough (Ingie)
-analogIN.DurationInSeconds = 10; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
+analogIN.DurationInSeconds = 60; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
 DurationInSeconds = analogIN.DurationInSeconds;
 
 ch_camera = addAnalogInputChannel(analogIN,'dev1', 'ai0', 'Voltage'); %camera pulse set up
@@ -39,7 +40,7 @@ end
 analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(DurationInSeconds) ; %50000;
 lh = addlistener(analogIN,'DataAvailable',@plotData); 
 
-%% Camera initialization
+%% Camera initialization - in imager.m?
 
 vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
 src = getselectedsource(vid);
@@ -70,7 +71,7 @@ preview(vid);
 disp('Preview started')
 
 
-%% Start acquisition -- run this section after initial set up
+%% Start acquisition -- run this section after initial set up - run2.m and sendtoImager.m
 startBackground(analogIN);
 pause(1)
 src.Strobe2 = 'On';
@@ -95,7 +96,7 @@ end
 stoppreview(vid);
 closepreview(vid);
 
-%%
+%% run2.m and getsync
 function plotData(src,event)
     global fileID savePath analogIN
      %plot(event.TimeStamps, event.Data)
@@ -131,7 +132,7 @@ function plotData(src,event)
 %     title('Photodiode Pulse');
     figure; plot(timestamps(2:end), diff(data(:,1))>1);
     hold on
-    plot(timestamps(1:end), temp2, 'r')
+    plot(timestamps(1:end), temp2>1, 'r')
     legend('camera','photodiode');
     xlabel('Time (seconds)');
     ylabel('voltage (volts)');
