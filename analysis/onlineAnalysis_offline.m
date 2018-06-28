@@ -6,12 +6,13 @@
 
 %dataPath= 'C:\Users\hwanggm1\Documents\data\Retinopathy\ImagerData\05312018\';
 
-[ fName, pathname ]= uigetfile('*.mat', 'Select a MATLAB data file', 'C:\Users\Huganir lab\Documents\imager_data\');
+%% Load analyzer
+[ fName, pathname ]= uigetfile('*.analyzer', 'Select an analyzer file', 'C:\Users\Huganir lab\Documents\imager_data\');
 if isequal(fName,0)
    error('User selected Cancel')
 else
    disp(['User selected ', fullfile(pathname, fName)])
-   load(fullfile(pathname, fName));
+   load(fullfile(pathname, fName),'-mat');
 end
 
 dataPath= pathname;
@@ -20,7 +21,7 @@ dataPath= pathname;
 %choose analyzer file to upload
 %load('C:\Users\hwanggm1\Documents\data\Retinopathy\AnalyzerFiles\XX0\xx0_u000_001.analyzer', '-mat');
 %load('C:\Users\hwanggm1\Documents\data\Retinopathy\AnalyzerFiles\XX0\xx0_u000_003.analyzer', '-mat');
-syncInfo=syncInfo2; %update manually
+syncInfo=syncInfo1; %update manually
 %  
     %load file with syncInfo
     %Grabtimes = syncInfo.acqSyncs; % original code
@@ -40,6 +41,19 @@ syncInfo=syncInfo2; %update manually
     frameang = framest/T*2*pi; %Expected dimension 1648x1
     %GMH will now load raw images
     %load([dataPath 'Widefield_2018-05-31_183657.mat']);
+
+%% Select Image data mat file
+for c =1:2
+    
+[ fName, pathname ]= uigetfile('*.mat', 'Select Image data MATLAB file', 'C:\Users\Huganir lab\Documents\imager_data\');
+if isequal(fName,0)
+   error('User selected Cancel')
+else
+   disp(['User selected ', fullfile(pathname, fName)])
+   load(fullfile(pathname, fName));
+end
+
+    
     load( fullfile(pathname, fName) ); 
 %   'Widefield_2018-05-31_175714.mat' % azimuth 0 deg
 %   'Widefield_2018-05-31_180218.mat' % azimuth 180 deg
@@ -77,13 +91,13 @@ Tens=squeeze(im(:,:,1,:)); %
     acc = 2*acc ./ (k-1);
 %%
 %GMH typed in values of c, r, and F1 to step thru GUI functionality
-c=2; %update
-r=2; %GMH update
+%c=1; %update
+%r=2; %GMH update
 %F1={}; %GMH update
-    if r == 1
+    if c == 1
         F1{c} = acc;
     else
-        F1{2} = acc; %F1{c} =  F1{c}+ acc; % manually set F1{2}=acc;
+        F1{c} = acc; %F1{c} =  F1{c}+ acc; % manually set F1{2}=acc;
     end
 %GMH is manually assigning looperInfo to Analyzer.loops
 %looperInfo=Analyzer.loops; % this needs to be commented out to restore GUI functionality
@@ -93,7 +107,7 @@ nc=2;
     figure(99)
     subplot(1,nc,c), imagesc(angle(F1{c})), drawnow    
     
-%end
+end
 %% Check f1m after assigning F1 to it
 f1m=F1;
 figure(100)
@@ -106,5 +120,5 @@ imagesc(angle(f1m{2})), drawnow
 title('180 degree ')
 set(gca,'CLim',pi/180*[-50 50])
 %Tens = Tens*0;
-%save('XX0_000_003.mat', 'f1m') 
+save('XX0_000_001.mat', 'f1m') 
  

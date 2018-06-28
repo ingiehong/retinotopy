@@ -1,11 +1,9 @@
 
 %Use these commands to prune structures for insertion into the Callahan retinotopy protocol  
-%grab = struct('img', tmp, 'clock', [2018 05 09 16 0 0], 'ROIcrop', [30 250 100 350], 'comment', {} );
-
 %% Select mat file
 %fName='C:\Users\hwanggm1\Documents\data\Retinopathy\Sample Data\XX0\grab_XX0_000_001_31_May_2018_17_57_14.mat';
 
-[ fName, pathname ]= uigetfile('*.mat', 'Select a MATLAB data file', 'C:\Users\Huganir lab\Documents\imager_data\');
+[ fName, pathname ]= uigetfile('*.mat', 'Select a MATLAB grab data file', 'C:\Users\Huganir lab\Documents\imager_data\');
 if isequal(fName,0)
    error('User selected Cancel')
 else
@@ -13,10 +11,12 @@ else
    load(fullfile(pathname, fName));
 end
 
-%tmp=squeeze(im(:,:,1,1));
-%grab.img = tmp; %tmp is grab from collect
-%grab.clock = [2018 05 31 17 57 14];
-%grab.ROIcrop = [];%[40 260 155 250]; 
+%Creating grab file
+tmp=squeeze(im(:,:,1,1));
+grab.img = tmp; %tmp is grab from collect
+grab.clock = [2018 05 31 17 57 14];
+grab.ROIcrop = [];%[40 260 155 250]; 
+grab.comments = {};
 %save('grab_XX0_000_001_31_May_2018_17_57_14.mat', 'grab');
 %dataPath= 'C:\Users\hwanggm1\Documents\data\Retinopathy\ImagerData\05312018\'
  %   load([dataPath '05311800_Widefield_2018-05-31_175714syncInfo.mat']);
@@ -36,7 +36,8 @@ else
    load(fullfile(pathname, fName), '-mat'); % 
 end
 
-%cd('C:\Users\hwanggm1\Documents\data\Retinopathy\AnalyzerFiles\XX0')
+%%
+%cd('C:\Users\Huganir lab\Documents\imager_data\05312018')
 %xx0_u000_001.analyzer  xx0_u000_002.analyzer are azimuth files 0&180 deg
 %xx0_u000_004.analyzer  xx0_u000_007.analyzer are altitude files 0&180 deg
 %load('xx0_u000_004.analyzer', '-mat'); % 
@@ -57,9 +58,14 @@ end
  
 % Analyzer.P = setfield(Analyzer.P ,'altazimuth', 'altitude')
 %Analyzer.P.param{12}{3}='altitude' %% or 'azimuth'
-Analyzer.P.param{3}{3}=183; %ensure longer stimulus time is used for retonotopic analysis
-Analyzer.L.reps=1;
-Analyzer.L.rand=0;
+
+if Analyzer.P.param{3}{3} ~= 183 %ensure longer stimulus time is used for retonotopic analysis
+  error('your stimulus duration is not 183 seconds')
+end
+    Analyzer.L.reps=1;
+if Analyzer.L.rand==1
+    error('you forgot to switch off random in Looper')
+end
 Analyzer.L.param{1}{2}=0;
 Analyzer.loops.conds{1}.val{1}=0;
 Analyzer.loops.conds{1}.repeats{1}.trialno=1
@@ -70,9 +76,9 @@ Analyzer.loops.conds{2}.repeats{1}.trialno=2
 %cd('C:\Users\hwanggm1\Documents\data\Retinopathy\ImagerData\05312018')
 %load('05311816_Widefield_2018-05-31_181251syncInfo.mat')
 
-%% Select syncInfo mat file
+%% Select first syncInfo mat file
 
-[ fName, pathname ]= uigetfile('*.mat', 'Select a SyncInfo MATLAB data file', pathname );
+[ fName, pathname ]= uigetfile('*.mat', 'Select first SyncInfo MATLAB data file', pathname );
 if isequal(fName,0)
    error('User selected Cancel')
 else
@@ -81,15 +87,23 @@ else
 end
 
 %%
-syncInfo1.dispSyncs=syncInfo.dispSyncs(2:end); % add missing disp pulse and prune to 1870
-syncInfo1.acqSyncs=syncInfo.acqSyncs(130:130+1869);
+%Check for extra flashes in photo diode
+while abs(syncInfo.dispSyncs(2) - syncInfo.dispSyncs(1)-2) >0.1
+    syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
+end
+diff(syncInfo.dispSyncs)
+
+syncInfo1=syncInfo ;       
+getStartframe=find(syncInfo1.dispSyncs(1)<syncInfo1.acqSyncs,1)-1
+syncInfo1.acqSyncs=syncInfo1.acqSyncs(getStartframe:getStartframe+1869);
 %syncInfo1.dispSyncs = [syncInfo1.dispSyncs(1)-2 ; syncInfo1.dispSyncs];
+%%rare fix
 clear syncInfo
 
 %% Select syncInfo mat file
 %load('05311840_Widefield_2018-05-31_183657syncInfo.mat')
 
-[ fName, pathname ]= uigetfile('*.mat', 'Select a SyncInfo MATLAB data file', 'C:\Users\Huganir lab\Documents\imager_data\');
+[ fName, pathname ]= uigetfile('*.mat', 'Select second SyncInfo MATLAB data file', 'C:\Users\Huganir lab\Documents\imager_data\');
 if isequal(fName,0)
    error('User selected Cancel')
 else
@@ -97,15 +111,26 @@ else
    load(fullfile(pathname, fName));
 end
 
-syncInfo2= syncInfo;
-syncInfo2.acqSyncs=syncInfo.acqSyncs(127:127+1869);
+%Check for extra flashes in photo diode
+while abs(syncInfo.dispSyncs(2) - syncInfo.dispSyncs(1)-2) >0.1
+    syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
+end
+       
+       
+diff(syncInfo.dispSyncs)
+syncInfo2=syncInfo ;
+getStartframe=find(syncInfo2.dispSyncs(1)<syncInfo2.acqSyncs,1)-1;
+syncInfo2.dispSyncs=syncInfo2.dispSyncs(1:end); % add missing disp pulse and prune to 1870
+syncInfo2.acqSyncs=syncInfo2.acqSyncs(getStartframe:getStartframe+1869);
 clear syncInfo
  
 %clear all other stuff, then 
 %cd('C:\Users\hwanggm1\Documents\data\Retinopathy\AnalyzerFiles\XX0')
-cd(pathname)
+%cd(pathname)
 
-save('xx0_u000_003.analyzer', 'Analyzer', 'syncInfo1', 'syncInfo2')
+outPath='C:\Users\Huganir lab\Documents\RetinotopyPipelineData\AnalyzerFiles\XX0\'
+save([outPath 'XX0_u000_001.analyzer'], 'Analyzer', 'syncInfo1', 'syncInfo2')
 clear all
-load('xx0_u000_003.analyzer', '-mat')
+
+load([outPath 'XX0_u000_001.analyzer'], '-mat')
  
