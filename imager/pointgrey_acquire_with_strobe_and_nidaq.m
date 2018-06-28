@@ -17,7 +17,7 @@ daq.getDevices;
 %%
   s =daq.createSession('ni');
   s.Rate=5000;
-  s.DurationInSeconds = 100; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
+  s.DurationInSeconds = 420; %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
 
   ch_camera = addAnalogInputChannel(s,'dev1', 'ai0', 'Voltage'); %camera pulse set up
   ch_camera.TerminalConfig = 'SingleEnded'; 
@@ -28,7 +28,7 @@ daq.getDevices;
 %%
 saveFlag=1; %set to 1 to save image files
 %animID='xx0_u000_003'; % must manually update this ID each experiment
-fileID=['Widefield_' datestr(now, 'yymmdd_HHMMSS') ];
+fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
 savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
 if ~exist(savePath)
     mkdir(savePath)
