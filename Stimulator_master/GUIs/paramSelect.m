@@ -100,7 +100,7 @@ function parameterList_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from parameterList
 
 global Pstate
-
+pause(0.5)
 idx = get(handles.parameterList,'value');
 
 set(handles.paramEditVal,'string',num2str(Pstate.param{idx}{3}));

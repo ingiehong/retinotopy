@@ -235,9 +235,9 @@ if ~Mstate.running
     if get(GUIhandles.main.intrinsicflag,'value')
         [Oflag dd] = checkforOverwrite;
         if Oflag
-            return
+            %return
         else
-            dd
+            disp([ 'Creating new data folder: ' dd ])
             mkdir(dd)
         end
     end
@@ -282,8 +282,8 @@ if ~Mstate.running
         sendtoImager(sprintf(['I %2.3f' 13],total_time))
         
         %Make sure analog in is not running
-%        stop(analogIN)
-%        flushdata(analogIN)        
+        stop(analogIN)
+        %flushdata(analogIN)        
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
@@ -318,7 +318,7 @@ end
 %'playsample'.  Otherwise it will open the shutter.
 %set(GUIhandles.param.playSample,'enable','off')
 
-%exptcb_Callback(hObject.exptcb, eventdata,handles);
+exptcb_Callback(GUIhandles.main.exptcb, eventdata,handles);
 
 
 % --- Executes on button press in unitcb.
