@@ -1,7 +1,8 @@
 function run2
+%% Acquires video and analog data in a loop 
 
-global GUIhandles Pstate Mstate trialno syncInfo analogIN
-
+global GUIhandles Pstate Mstate trialno syncInfo analogIN lh
+disp('run2 starting')
 if Mstate.running %otherwise 'getnotrials' won't be defined for play sample
     nt = getnotrials;
 end
@@ -15,10 +16,16 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     set(GUIhandles.main.showTrial,'string',['Trial ' num2str(trialno) ' of ' num2str(nt)] ), drawnow
 
     [c r] = getcondrep(trialno);  %get cond and rep for this trialno
+    
+    disp('Sending visual stimulus to slave computer...')
+    buildStimulus(c,trialno)    %Tell stimulus to buffer the images (also controls shutter)
+    waitforDisplayResp   %Wait for serial port to respond from display
 
     if ISIbit
-%        start(analogIN)  %Start sampling acquistion and stimulus syncs GMH
-%        commented out 
+        %start(analogIN)  %Start sampling acquistion and stimulus syncs GMH commented out
+        lh = addlistener(analogIN,'DataAvailable',@plotData); 
+        disp('Photodiode/Frame strobe acquisition started!')
+        startBackground(analogIN);
     end
     
     %%%Update ScanImage with Trial/Cond/Rep
@@ -35,9 +42,6 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
 
     %%%Organization of commands is important for timing in this part of loop
    
-    buildStimulus(c,trialno)    %Tell stimulus to buffer the images (also controls shutter)
-    waitforDisplayResp   %Wait for serial port to respond from display
-
     startStimulus      %Tell Display to show its buffered images. TTL from stimulus computer "feeds back" to trigger 2ph acquisition
     
     %In 2ph mode, we don't want anything significant to happen after startStimulus, so that
@@ -48,23 +52,18 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
         sendtoImager(sprintf(['S %d' 13],trialno-1))  %Matlab now enters the frame grabbing loop (I will also save it to disk)
         
         %%%Timing is not crucial for this last portion of the loop (both display and frame grabber/saving is inactive)...
+
+        delete(lh) % Added to remove listener 
+        stop(analogIN)  %Stop sampling acquistion and stimulus syncs  %GMH
         
-       % stop(analogIN)  %Stop sampling acquistion and stimulus syncs  %GMH
-       % commented out
-  %     keyboard
-      % [syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] =
-      % getSyncTimes;   %GMH
-      %  syncInfo.dSyncswave = [];  %Just empty it for now %GMH
-      %  saveSyncInfo(syncInfo)  %append .analyzer file %GMH
+        %[syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] = getSyncTimes;   
+        %syncInfo.dSyncswave = [];  %Just empty it for now
+        %saveSyncInfo(syncInfo)  %append .analyzer file
         
         %[looperInfo.conds{c}.repeats{r}.dispSyncs looperInfo.conds{c}.repeats{r}.acqSyncs looperInfo.conds{c}.repeats{r}.dSyncswave] = getSyncTimes;
-        %C:\Users\Ingie\Documents\imager_data\L54
-        % GMH creating syncInfo from example data
-   %     load('C:\Users\Ingie\Documents\imager_data\L54\L54_u000_001.analyzer','-mat'); %GMH
-    %    syncInfo.dispSyncs=syncInfo1.dispSyncs; %GMH
-     %   syncInfo.acqSyncs=syncInfo1.acqSyncs; %GMH
-        %%%original code
-        onlineAnalysis(c,r,syncInfo)     %Compute F1 GMH commented out
+        
+        %onlineAnalysis(c,r,syncInfo)     %Compute F1
+
 
         
     end
@@ -83,6 +82,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     
     %This would otherwise get called by Displaycb 
     if ISIbit
+        disp('run2 looping')
         run2  %Nothing should happen after this
     end
         
@@ -92,7 +92,7 @@ else
     %Before, I had this in the 'mainwindow callback routine, which messed
     %things up on occasion.
     %This is executed at the end of experiment and when abort button is hit
-    if get(GUIhandles.main.twophotonflag,'value');
+    if get(GUIhandles.main.twophotonflag,'value')
         Stimulus_localCallback('abort'); %Tell ScanImage to hit 'abort' button
     end
     
@@ -107,5 +107,66 @@ else
     end
 
 end
+disp('run2 done')
 
+
+
+%% run2.m and getsync
+function plotData(src,event)
+    disp('Starting daq listner...')
+    %global fileID savePath analogIN
+    
+    savePath = parseString(Mstate.analyzerRoot,';');    
+    savePath=savePath{1};
+    fname = [Mstate.anim '_' sprintf('u%s',Mstate.unit) '_' Mstate.expt '_' sprintf('%03d',trialno-1)];
+    fileID = [savePath '\' Mstate.anim '\' fname ];
+
+    % fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
+    % savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
+    if ~exist(savePath)
+        mkdir(savePath)
+    end
+    timestamps=event.TimeStamps;
+    data=event.Data;
+    % figure; plot(timestamps,data);
+    % xlabel('Time (seconds)');
+    % ylabel('voltage (volts)');
+    % legend('camera','photodiode');
+    % title('Raw data from photodiode and camera');
+    cameraPulseInd=find(diff(data(:,1)>1)==1);
+    acqSyncTimes=cameraPulseInd/analogIN.Rate; % this will end up being syncInfo.acqSyncs
+    disp(['Analyzing ' num2str(size(acqSyncTimes)) ' seconds of analog data...'])
+    % convert photodiode pulse into start time
+    temp1=sgolayfilt(data(:,2),27,51);%27,51); 15,27
+    temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
+    PDchan=find(diff(temp2>1.5)==1);   
+    dispSyncTimes=PDchan/analogIN.Rate  %this will become syncInfo.dispSyncs
+    figure; plot(timestamps(2:end), diff(data(:,1))>1);
+    hold on
+    plot(timestamps(1:end), temp2>1, 'r')
+    legend('camera','photodiode');
+    xlabel('Time (seconds)');
+    ylabel('voltage (volts)');
+    title('Processed data from photodiode and camera');
+    % create structure syncInfo
+    syncInfo={};
+        syncInfo=setfield(syncInfo, 'dispSyncs', dispSyncTimes);
+        syncInfo=setfield(syncInfo, 'acqSyncs', acqSyncTimes);
+        
+    % Check for extra flashes in photodiode pulses
+    while abs(syncInfo.dispSyncs(2) - syncInfo.dispSyncs(1)-2) >0.1
+        disp('Erroneous first photodiode flash found.. deleting.')
+        syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
+    end
+    
+    diff(syncInfo.dispSyncs)
+    saveSyncInfo(syncInfo)  %append .analyzer file
+    onlineAnalysis(c,r,syncInfo)     %Compute F1
+        
+    %save([ fileID '_syncInfo'], 'syncInfo' );
+	%disp(['saving ...' fileID '_syncInfo'])
+end
+
+
+end
 
