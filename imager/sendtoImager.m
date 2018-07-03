@@ -5,7 +5,7 @@ global imagerhandles h;
 switch(cmd(1))
     case 'A'  %% animal
         set(findobj('Tag','animaltxt'),'String',deblank(cmd(3:end)));
-        deblank(cmd(3:end))
+        %deblank(cmd(3:end))
 
     case 'E' %% expt      
         set(findobj('Tag','expttxt'),...
@@ -22,10 +22,16 @@ switch(cmd(1))
     case 'M'  %% set mode
         m = str2num(cmd(3:end-1));
 
-    case 'I'  %% total_time
-        %GMH this is where code goes to write files
-        set(findobj('Tag','timetxt'),'String',deblank(cmd(3:end)));
+    case 'I'  %% Set acquisition time to total_time
+        total_time=deblank(cmd(3:end));
+        set(findobj('Tag','timetxt'),'String',total_time);
         preallocateTensor
+        
+        global vid FPS analogIN
+        total_time=str2num(total_time);
+        vid.FramesPerTrigger = (total_time)*FPS ;        
+        analogIN.DurationInSeconds = total_time + 1; % Add 1 second to record all analog activity
+        analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(analogIN.DurationInSeconds) ;
         
     case 'S'  %% start sampling...
         
@@ -41,14 +47,15 @@ switch(cmd(1))
         datadir= get(findobj('Tag','datatxt'),'String');
         tag    = get(findobj('Tag','tagtxt'),'String');
 
-        dd = [datadir '\' lower(animal) '\u' unit '_' expt];
+        %dd = [datadir '\' lower(animal) '\' animal '_u' unit '_' expt];
+        dd = [datadir '\' lower(animal) ];
           
-        fname = sprintf('%s\\u%s_%s',dd,unit,expt);
+        fname = sprintf('%s\\%s_u%s_%s',dd,animal,unit,expt);
         fname = [fname  '_' sprintf('%03d',trial)];
 
         nframes = 1;
 
-        h = imagerhandles;
+%         h = imagerhandles;
 %        h.mildig.set('GrabFrameEndEvent',0,'GrabEndEvent',...
 %            0,'GrabStartEvent',0);
 
@@ -57,9 +64,9 @@ switch(cmd(1))
         %h.mildig.Image = h.buf{1};
 
 
-       h = GrabSaveLoop(h,fname,parport); %GMH
-
-      set(1,'Name','imager');
-      drawnow;
+        %h = GrabSaveLoop(h,fname,parport); %GMH
+        GrabSave(fname); %GMH
+        set(1,'Name','imager');
+        drawnow;
 
 end
