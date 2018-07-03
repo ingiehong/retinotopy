@@ -9,7 +9,7 @@ configureLstate
 configDisplayCom    %stimulus computer
 
 %NI USB input for ISI acquisition timing from frame grabber
-%configSyncInput  %GMH commented this out
+configSyncInput  %GMH commented this out
 
 %configEyeShutter %GMH comented this out
 
