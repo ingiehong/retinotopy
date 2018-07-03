@@ -18,14 +18,13 @@ roots = parseString(Mstate.analyzerRoot,';');
 for i = 1:length(roots)
 
     dd = [roots{i} '\' Mstate.anim];
-dd
     if(~exist(dd))
         mkdir(dd);  %if there is a new animal
     end
 
     dd = [dd '\' title '.analyzer'];
 
-    ['Saving analyzer file at location:  ' dd]
+    disp(['Saving analyzer file at location:  ' dd])
 
     save(dd ,'Analyzer')
     
