@@ -4,16 +4,16 @@ global Tens looperInfo F1 GUIhandles
  
 if get(GUIhandles.main.analysisFlag,'value')
     
-    
+    disp(['Starting online phase analysis...'])
     Grabtimes = syncInfo.acqSyncs;
     %Stimulus starts on 2nd sync, and ends on the second to last.  I also
     %get rid of the last bar rotation (dispSyncs(end-1)) in case it is not an integer multiple
     %of the stimulus trial length
-    Disptimes = syncInfo.dispSyncs(2:end-2); 
-
+    Disptimes = syncInfo.dispSyncs(2:end-2) 
+    
     %T = getparam('t_period')/60;
-    T = mean(diff(Disptimes)); %This one might be more accurate
-
+    T = mean(diff(Disptimes)) %This one might be more accurate
+    disp(['Detected ' num2str(length(Disptimes)) ' trials of visual stimulation. Average length: ' num2str(T) ])
     fidx = find(Grabtimes>Disptimes(1) & Grabtimes<Disptimes(end));  %frames during stimulus
 
     framest = Grabtimes(fidx)-Disptimes(1);  % frame sampling times in sec
@@ -49,7 +49,9 @@ if get(GUIhandles.main.analysisFlag,'value')
     nc = length(looperInfo.conds);
     figure(99)
     subplot(1,nc,c), imagesc(angle(F1{c})), drawnow    
-
+    title([ 'Condition ' num2str(c) ])
+    %set(gca,'CLim',pi/180*[-50 50])
+    axis image
 end
 
 Tens = Tens*0;
