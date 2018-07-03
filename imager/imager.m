@@ -156,7 +156,7 @@ global parport;
 
 %%% But now we are using the audio output!!!!
 
-handles.blip = audioplayer(10*sin(linspace(0,2*pi,32)),30000); 
+%handles.blip = audioplayer(10*sin(linspace(0,2*pi,32)),30000); 
 
 %% Rename
 
@@ -279,7 +279,7 @@ set(handles.timer,'Period',0.5,'BusyMode','drop','ExecutionMode',...
 
 %% Now the data directory, file name, and time tag
 %'C:\Users\Ingie\Documents\imager_data';
-handles.datatxt ='C:\Users\Ingie\Documents\imager_data\xx0'; %'c:\imager_data\xx0';
+% handles.datatxt ='C:\Users\Ingie\Documents\imager_data\xx0'; %'c:\imager_data\xx0';
 handles.unit = 'u000_000';
 handles.time_tag = 0;
 
@@ -315,6 +315,43 @@ imagerhandles.roisize = 100;
 
 imagerhandles.hwroi = [256 256];  %% Center of the image data region of interest (assumes 2x2 binning)
 imagerhandles.hwroisize = 128;
+
+
+%% Modern MATLAB Image Acquisition Toolbox-based code
+global vid src 
+
+vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
+src = getselectedsource(vid);
+
+src.FrameRate = FPS;
+if src.FrameRate ~= FPS
+    error('Framerate could not be set to proper value. Please restart Matlab and try again.')
+end
+srcinfo=propinfo(src,'Shutter');
+if srcinfo.ConstraintValue(2)<30
+    error('Shutter could not be set to 30ms. Please restart Matlab and try again.')
+end
+src.ShutterMode = 'Manual';
+src.Shutter=30;
+src.Gain=10;
+src.GammaMode = 'Manual';
+src.SharpnessMode = 'Manual';
+src.ExposureMode = 'Manual';
+src.Strobe2 = 'Off';
+triggerconfig(vid, 'manual')
+vid.FramesPerTrigger = (str2num(get(findobj('Tag','timetxt'),'String')))*src.FrameRate ;
+
+%% Open image in existing window
+
+vidRes = vid.VideoResolution;
+nBands = vid.NumberOfBands;
+imagerhandles.hImage = image( handles.videoaxes, zeros(vidRes(2), vidRes(1), nBands) );
+preview(vid, imagerhandles.hImage);
+
+preview(vid);
+disp('Preview started')
+
+%% End of insert 
 
 % Choose default command line output for imager
 handles.output = hObject;
@@ -469,21 +506,6 @@ function histbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of histbox
-
-
-%% We are not using this handler any more...
-
-function dighandler(varargin)
-global imagerhandles nframes T;
-
-imagerhandles.mildig.Image = imagerhandles.buf{bitand(nframes,1)+1};  %% switch buffer
-T(nframes+1)=invoke(imagerhandles.milapp.Timer,'Read')
-nframes = nframes+1
-if(nframes>20)
-    imagerhandles.mildig.Halt;
-    imagerhandles.mildig.set('GrabFrameEndEvent',0);
-end
-
 
 
 % --- Executes on button press in autoscale.
@@ -939,91 +961,6 @@ if ispc
 else
     set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
-
-
-% % --------------------------------------------------------------------
-% function activex7_GrabFrameEnd(hObject, eventdata, handles)
-% % hObject    handle to activex7 (see GCBO)
-% % eventdata  structure with parameters passed to COM event listerner
-% % handles    structure with handles and user data (see GUIDATA)
-% 
-% global imagerhandles nframes T maxframes fname running;
-% 
-% T(nframes)=invoke(imagerhandles.milapp.Timer,'Read');
-% imagerhandles.mildig.Image = imagerhandles.buf{bitand(nframes,1)+1};  %% switch buffer
-% nframes = nframes+1;
-% % %%imagerhandles.buf{bitand(nframes,1)+1}.Save([fname '_' sprintf('%06d',nframes-1) '.raw']);
-% % if(nframes>maxframes)
-% %     imagerhandles.mildig.Halt;
-% %     imagerhandles.mildig.set('GrabFrameEndEvent',0,'GrabEndEvent',0,'GrabStartEvent',0);
-% %     set(SEMA,'Visible','off');
-% %     running = 0;
-% % end
-% 
-% % imagerhandles.mildig.Image = imagerhandles.buf{bitand(nframes,1)+1};  %% switch buffer
-% % T(nframes)=invoke(imagerhandles.milapp.Timer,'Read');
-% % nframes = nframes+1;
-% %
-% % if(nframes>maxframes)
-% %     imagerhandles.mildig.Halt;
-% %     imagerhandles.mildig.set('GrabFrameEndEvent',0,'GrabFrameStartEvent',0);
-% %     imagerhandles.mildig.Image = imagerhandles.milimg;  %% restore image
-% %end
-% 
-% 
-% % --------------------------------------------------------------------
-% function activex7_GrabFrameStart(hObject, eventdata, handles)
-% % hObject    handle to activex7 (see GCBO)
-% % eventdata  structure with parameters passed to COM event listerner
-% % handles    structure with handles and user data (see GUIDATA)
-% global imagerhandles nframes T maxframes;
-% disp('GrabFrameStart')
-% 
-% 
-% % --------------------------------------------------------------------
-% function activex7_GrabStart(hObject, eventdata, handles)
-% % hObject    handle to activex7 (see GCBO)
-% % eventdata  structure with parameters passed to COM event listerner
-% % handles    structure with handles and user data (see GUIDATA)
-% 
-% global imagerhandles nframes T maxframes;
-% disp('GrabStart');
-% 
-% 
-% % --------------------------------------------------------------------
-% function activex7_GrabEnd(hObject, eventdata, handles)
-% % hObject    handle to activex7 (see GCBO)
-% % eventdata  structure with parameters passed to COM event listerner
-% % handles    structure with handles and user data (see GUIDATA)
-% 
-% %%global imagerhandles nframes T maxframes fname running NBUF;
-% % global imagerhandles T nframes;
-% % T(nframes)=invoke(imagerhandles.milapp.Timer,'Read');
-% 
-% global parport;
-% 
-% putvalue(parport,1);
-% putvalue(parport,0);
-% 
-% %
-% % T(nframes)=invoke(imagerhandles.milapp.Timer,'Read');
-% % imagerhandles.mildig.Image = imagerhandles.buf{bitand(nframes,1)+1};  %% switch buffer
-% % nframes = nframes+1;
-% % imagerhandles.buf{bitand(nframes,1)+1}.Save([fname '_' sprintf('%06d',nframes-1) '.raw']);
-% 
-% % if(nframes<=maxframes)
-% %     imagerhandles.mildig.Grab;  %% trigger next grab
-% % else
-% %     imagerhandles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
-% %     T = T-T(1);  %% remove absolute time
-% %     save([fname '_T.mat'],'T');   %% save the start times
-% %     set(findobj('Tag','samplingtxt'),'Visible','off');
-% %     running = 0;
-% % end
-% %
-% % %% Stream to disk
-% % imagerhandles.buf{bitand(nframes,1)+1}.Save([fname '_' sprintf('%06d',nframes-1) '.raw']);
-% 
 
 % --- Executes on selection change in streampop.
 function streampop_Callback(hObject, eventdata, handles)
