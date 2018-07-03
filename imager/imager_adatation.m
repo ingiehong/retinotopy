@@ -29,6 +29,11 @@ ch_camera.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008
 ch_stim = addAnalogInputChannel(analogIN,'dev1','ai1', 'Voltage');     %Photodiode set up
 ch_stim.TerminalConfig = 'SingleEnded';
 ch_stim.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008 
+
+analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(DurationInSeconds) ; %50000;
+lh = addlistener(analogIN,'DataAvailable',@plotData); 
+
+
 %%
 saveFlag=1; %set to 1 to save image files
 fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
@@ -36,9 +41,6 @@ savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '
 if ~exist(savePath)
     mkdir(savePath)
 end
-%%
-analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(DurationInSeconds) ; %50000;
-lh = addlistener(analogIN,'DataAvailable',@plotData); 
 
 %% Camera initialization - in imager.m?
 
@@ -78,6 +80,8 @@ src.Strobe2 = 'On';
 start(vid);
 trigger(vid);
 disp('Triggered!')
+
+%% Stop acquisition
 pause(DurationInSeconds-2) %this specifies how long camera will stay in strobe2=on mode
 %above line should be +2 to enable saving
 stop(vid)
@@ -86,7 +90,7 @@ pause(1)
 delete(lh)
 stop(analogIN); 
 
-% saving data from memory
+%% Saving image data from memory
 if saveFlag==0  % change to 1 to save mat files
     im = getdata(vid);
     save([ savePath fileID '.mat'], 'im');
