@@ -402,7 +402,7 @@ function pany_Callback(hObject, eventdata, handles)
 
 px = get(handles.panx,'Value');
 py = get(handles.pany,'Value');
-handles.mildisp.Pan(px,-py);
+%handles.mildisp.Pan(px,-py);
 
 % --- Executes during object creation, after setting all properties.
 function pany_CreateFcn(hObject, eventdata, handles)
