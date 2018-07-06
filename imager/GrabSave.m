@@ -18,8 +18,8 @@ stop(vid)
 src.Strobe2 = 'Off';
 %pause(1) % delay for analog data acquisition to finish.
 
-im = getdata(vid);
-Tens = squeeze(im);
+im = squeeze(getdata(vid));
+Tens = im;
 save([ fname '.mat'], 'im');
 
 
@@ -31,7 +31,7 @@ grab.ROIcrop = [];%[40 260 155 250];
 grab.comments = {};
 
 %[~,name,~]=fileparts(fName);
-save([fname '_grab.mat'], 'grab');
+%save([fname '_grab.mat'], 'grab');
 
 % if get(GUIhandles.main.streamFlag,'value')
 %     
