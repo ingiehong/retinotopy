@@ -13,18 +13,14 @@ intensityFigTag = 1; %if you want to see intensity maps
 LPdim = size(LP);
 HP = zeros(LPdim);
 
-%% process data for various LP smothing
+%% process data for various LP smoothing
 for x=1:length(LP)
     
     %% SET FILE DIRECTORIES  --------------
-    AnalyzerDir = 'C:\Users\Huganir lab\Documents\RetinotopyPipelineData\AnalyzerFiles\';
-%    AnalyzerDir = 'C:\Users\hwanggm1\Documents\data\Retinopathy\AnalyzerFiles\';
-    ProcessedDir = 'C:\Users\Huganir lab\Documents\RetinotopyPipelineData\ProcessedData\';
-%    ProcessedDir = 'C:\Users\hwanggm1\Documents\data\Retinopathy\ProcessedData\';
-    GrabDir = 'C:\Users\Huganir lab\Documents\RetinotopyPipelineData\GrabData\';
-%    GrabDir = 'C:\Users\hwanggm1\Documents\data\Retinopathy\Sample Data\';
-%    SaveDir = strcat('E:\AnalyzedData\',animAna
-    SaveDir = ['C:\Users\Huganir lab\Documents\RetinotopyPipelineData\AnalyzedData\',anim,'\'];
+    AnalyzerDir = pwd;
+    ProcessedDir = pwd;
+    GrabDir = pwd;
+    SaveDir = [pwd filesep];
 
     if exist(SaveDir,'dir') == 0;
         mkdir(SaveDir)
@@ -38,20 +34,20 @@ for x=1:length(LP)
     Horiz_ExptID = ExptID;
     
     %% GET ANALYZER FILE
-    AnaDir = [AnalyzerDir,anim,'\',ExptID '.analyzer'];
+    AnaDir = [AnalyzerDir,'\',ExptID '.analyzer'];
     load(AnaDir,'Analyzer','-mat')
     
     % confirm this is the horiz ret expt
     if strcmp(Analyzer.P.param{12}(3), 'altitude') == 1;
         disp('Experiments entered incorrectly.')
-        pause
+        %pause
     end
     
     Horiz_Analyzer = Analyzer;
     
     %% GET PROCESSED DATA
-    filename=strcat(Anim,'_',Expt1,'.mat');
-    filepath=strcat(ProcessedDir,filename);
+    filename=strcat(Anim,'_u',Expt1,'.mat');
+    filepath=fullfile(ProcessedDir,filename);
     S = load(filepath);  %Returns the contents in the .mat under the structure S
     f1m = S.f1m;    %f1m is a cell array with images from each condition
     
@@ -64,11 +60,10 @@ for x=1:length(LP)
     
     %% GET ANATOMY IMAGE
     
-    dbstop if error
-    Anatdir=[GrabDir Anim,'\grabs\'];
-    D = dir([Anatdir '*.mat']);
-    pic=D(001).name;
-    filename=strcat(Anatdir, pic);
+    Anatdir=pwd;
+    %D = dir([Anatdir filesep '*.mat']);
+    %pic=D(001).name;
+    filename=[Anatdir,filesep,ExptID,'_000_grab.mat'];
     image=load(filename);
     anatomypic_orig=image.grab.img;
     
@@ -237,7 +232,7 @@ if figTag == 1;
     colormap hsv
     colorbar('SouthOutside','FontSize',12,'XTick',[-70:20:70]);
     axis equal
-%     axis tight
+    axis tight
     
     HorizAng1=figure('Name','  Horizontal Retinotopy Angle 1','NumberTitle','off');
     imagesc(horiz_ang1)
@@ -269,6 +264,16 @@ if figTag == 1;
     axis equal
     axis tight
 
+    HorizMag=figure('Name','  Horizontal Retinotopy Response Magnitude','NumberTitle','off');
+    imagesc(horiz_resp_mag)
+    title(strcat(ExptID,' Horizontal Retinotopy Response Magnitude LP ',num2str(LP(x))),'FontSize',14,'Interpreter','none');
+    set(gca,'FontName','arial');
+    set(gcf,'Color','w')
+    colormap hot
+    colorbar('EastOutside','FontSize',12);
+    axis equal
+    axis tight
+    
     % save figures
     AnalDir = strcat(SaveDir,'KretFigures/');
     if iscell(AnalDir)
@@ -282,7 +287,7 @@ if figTag == 1;
     filename8 = strcat(ExptID,'_LP',num2str(LP(x)),'_HorizRet2');
     filename9 = strcat(ExptID,'_LP',num2str(LP(x)),'_HorizAnatomy');
     filename18= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizRet3');
-    %filename19= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizMag'); % errored out GMH
+    filename19= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizMag'); % errored out GMH
     filename20= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizAng1');
     filename21= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizAng2');
     filename22= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizDelay');
@@ -294,8 +299,8 @@ if figTag == 1;
     saveas(Anatomy,strcat(AnalDir,filename9,'.fig'))
     saveas(HorizRet3,strcat(AnalDir,filename18,'.tif'))
     saveas(HorizRet3,strcat(AnalDir,filename18,'.fig'))
-  %  saveas(HorizMag,strcat(AnalDir,filename19,'.tif'))
-   % saveas(HorizMag,strcat(AnalDir,filename19,'.fig'))
+    saveas(HorizMag,strcat(AnalDir,filename19,'.tif'))
+    saveas(HorizMag,strcat(AnalDir,filename19,'.fig'))
     saveas(HorizAng1,strcat(AnalDir,filename20,'.tif'))
     saveas(HorizAng1,strcat(AnalDir,filename20,'.fig'))
     saveas(HorizAng2,strcat(AnalDir,filename21,'.tif'))
@@ -379,13 +384,13 @@ end
     Vert_ExptID=ExptID;
     
     %% GET ANALYZER
-    AnaDir=[AnalyzerDir,anim,'\',ExptID '.analyzer'];
+    AnaDir = [AnalyzerDir,'\',ExptID '.analyzer'];
     load(AnaDir,'Analyzer','-mat')
     Vert_Analyzer = Analyzer;
     
 %% GET PROCESSED DATA
-    filename=strcat(Anim,'_',Expt1,'.mat');
-    filepath=strcat(ProcessedDir,filename);
+    filename=strcat(Anim,'_u',Expt1,'.mat');
+    filepath=strcat(ProcessedDir,filesep,filename);
     S = load(filepath);  %Returns the contents in the .mat under the structure S
     f1m = S.f1m;    %f1m is a cell array with images from each condition
     %one axes hack
@@ -604,8 +609,7 @@ if figTag == 1;
     filename20= strcat(ExptID,'_LP',num2str(LP(x)),'_VertAng1');
     filename21= strcat(ExptID,'_LP',num2str(LP(x)),'_VertAng2');
     filename22= strcat(ExptID,'_LP',num2str(LP(x)),'_VertDelay');
- %  filename25= strcat(ExptID,'_LP',num2str(LP(x)),'_VertRet_RespMag');
-%    %errored GMH
+    %filename25= strcat(ExptID,'_LP',num2str(LP(x)),'_VertRet_RespMag');
     saveas(VertRet1,strcat(AnalDir,filename5,'.tif'))
     saveas(VertRet1,strcat(AnalDir,filename5,'.fig'))
     saveas(VertRet2,strcat(AnalDir,filename8,'.tif'))
@@ -622,8 +626,8 @@ if figTag == 1;
     saveas(VertAng2,strcat(AnalDir,filename21,'.fig'))
     saveas(VertDelay,strcat(AnalDir,filename22,'.tif'))
     saveas(VertDelay,strcat(AnalDir,filename22,'.fig'))
- %   saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.tif')) % errored GMH
- %   saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.fig')) % errored GMH
+    %saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.tif')) % errored GMH
+    %saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.fig')) % errored GMH
     
 end
 
@@ -849,7 +853,7 @@ end
             'xsize', xsize,...
             'ysize', ysize);
         
-        AnalDir1 = strcat(SaveDir,'/Kmaps/');
+        AnalDir1 = strcat(SaveDir,'Kmaps/');
         if iscell(AnalDir1)
             AnalDir1=AnalDir1{1};
         end
