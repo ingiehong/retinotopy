@@ -13,7 +13,7 @@ if get(GUIhandles.main.analysisFlag,'value')
     
     %T = getparam('t_period')/60;
     T = mean(diff(Disptimes)) %This one might be more accurate
-    disp(['Detected ' num2str(length(Disptimes)) ' trials of visual stimulation. Average length: ' num2str(T) ])
+    disp(['Detected ' num2str(length(Disptimes)-1) ' trials of visual stimulation. Average length: ' num2str(T) ])
     fidx = find(Grabtimes>Disptimes(1) & Grabtimes<Disptimes(end));  %frames during stimulus
 
     framest = Grabtimes(fidx)-Disptimes(1);  % frame sampling times in sec

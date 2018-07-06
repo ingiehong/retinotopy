@@ -17,7 +17,7 @@ if get(GUIhandles.main.analysisFlag,'value')
 
     fname = sprintf('%s\\%s_u%s_%s',dd,animal,unit,expt);
     %fname = [fname  '_' sprintf('%03d',trial)];
-    save(fname,'F1')
+    save(fname,'f1m')
 
 %     A = get(GUIhandles.main.animal,'string');
 % %    A = 'A71';
