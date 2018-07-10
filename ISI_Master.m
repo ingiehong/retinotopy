@@ -1,4 +1,5 @@
 %% Close all windows and clear all variables, including hidden globals
+clear all
 close all force % close all windows
 clearvars -global % clear all variables, including hidden globals
 imaqreset % To reset image acquisition toolbox, in case of camera error
