@@ -1,4 +1,4 @@
-function offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
+function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
 % Imitates the function of onlineAnalysis, on recorded files 
 %
 % Example of usage:
@@ -32,8 +32,8 @@ function offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     k = 1;
     for j=fidx(1):fidx(end)
         
-        img = 2^16-double(Tens(:,:,j)); % Now 16bit rather than 12bit
-        %img = double(Tens(:,:,j));
+        %img = 2^16-double(Tens(:,:,j)); % Now 16bit rather than 12bit
+        img = double(Tens(:,:,j)); % Don't invert for calcium imaging
         
         if j==fidx(1)
             acc = zeros(size(img));
@@ -66,15 +66,15 @@ function offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     save_tif(avgvideo, output_tif_filename)   
     
     
-    F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Now 16bit rather than 12bit
-    %F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3));
+    %F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Now 16bit rather than 12bit
+    F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Don't invert for calcium imaging
     
     acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
     acc = 2*acc ./ (k-1);
 
 % 
 %     if r == 1
-         F1{c} = acc;
+         F1 = acc;
 %     else
 %         F1{c} = F1{c} + acc;
 %     end
@@ -82,7 +82,7 @@ function offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     %nc = length(looperInfo.conds);
     figure
     %subplot(1,nc,c), 
-    imagesc(angle(F1{c})), drawnow    
+    imagesc(angle(F1)), drawnow    
     title([ 'Condition ' num2str(c) ])
     %set(gca,'CLim',pi/180*[-50 50])
     axis image
