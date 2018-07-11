@@ -32,21 +32,25 @@ for iLP = 1:dimLP(2);
     % The images in Garrett et al '14 were collected at 39 pixels/mm.  It is
     % recommended that kmap_hor and kmap_vert be down/upsampled to this value
     % before running. The code below downsamples by 2 to achieve 39 pixels/mm
+  
+%     kmap_hor_orig = rot90(rot90(kmap_hor_orig));
+%     kmap_vert_orig = rot90(rot90(kmap_vert_orig));
+%     
+     kmap_hor = downsample(kmap_hor_orig,2);
+%     kmap_hor = downsample(rot90(kmap_hor),2);
+%     
+     kmap_vert = downsample(kmap_vert_orig,2);
+%     kmap_vert = downsample(rot90(kmap_vert),2);
+%     
+%     kmap_hor_orig = rot90(kmap_hor_orig);
+%     kmap_vert_orig = rot90(kmap_vert_orig);
+
+    kmap_hor = kmap_hor_orig; %Ingie added
+    kmap_vert = kmap_vert_orig; % Ingie added
+%    pixpermm = 96.8; % Ingie changed this for current setting on 7/6
     
-    kmap_hor_orig = rot90(rot90(kmap_hor_orig));
-    kmap_vert_orig = rot90(rot90(kmap_vert_orig));
-    
-    kmap_hor = downsample(kmap_hor_orig,2);
-    kmap_hor = downsample(rot90(kmap_hor),2);
-    
-    kmap_vert = downsample(kmap_vert_orig,2);
-    kmap_vert = downsample(rot90(kmap_vert),2);
-    
-    kmap_hor_orig = rot90(kmap_hor_orig);
-    kmap_vert_orig = rot90(kmap_vert_orig);
-    
-    pixpermm = 39;
-    
+% keyboard
+    pixpermm = 96.8/2; % GMH added  39 was in original code
     %% Compute visual field sign map
     
     mmperpix = 1/pixpermm;
@@ -126,7 +130,7 @@ for iLP = 1:dimLP(2);
     title('watershed')
     colorbar off
     title('6. "Open" & set boundary')
-    
+    %keyboard % this is where visual field sign is plotted
     %% Make boundary of visual cortex
     
     %First pad the image with zeros because the "imclose" function does this
@@ -328,7 +332,9 @@ for iLP = 1:dimLP(2);
     
     % blood vessel picture
     subplot(1,3,1);
-    anatomypic = rot90(rot90(rot90(kret.AnatomyPic)));
+%    anatomypic = rot90(rot90(rot90(kret.AnatomyPic))); %removed one rot90()
+%    anatomypic = fliplr(kret.AnatomyPic); % GMH applied one fliplr instead of three or four rot90's
+    anatomypic = kret.AnatomyPic;
     imagesc(xdom,ydom,anatomypic)
     colormap gray
     hold on
@@ -358,7 +364,8 @@ for iLP = 1:dimLP(2);
     kmap_vert_overlay = kmap_vert_overlay/max(kmap_vert_overlay(:));
     kmap_vert_overlay = round(kmap_vert_overlay*49+1);
     
-    dim = size(kmap_hor_overlay);
+    dim = size(kmap_hor_overlay); % original code
+ 
     
     for i = 1:dim(1)
         for j = 1:dim(2)
@@ -402,5 +409,5 @@ for iLP = 1:dimLP(2);
     saveas(gcf,overlaysFig,'tif');
     
     exportFigsToPPTX([ExptID '_' 'LP' num2str(LP(iLP))] )
-    close all
+    %close all
 end

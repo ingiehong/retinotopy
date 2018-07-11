@@ -91,43 +91,43 @@ for x=1:length(LP)
     kmap_hor1 = kmap_hor*horscfactor; %puts kmap into eccentricity values instead of phase
     
     %% flip everything to be oriented correctly
-    kmap_hor1 = fliplr(kmap_hor1);
+%     kmap_hor1 = fliplr(kmap_hor1);
     % kmap_hor1 = rot90(kmap_hor1);
     % kmap_hor1 = rot90(kmap_hor1);
     % kmap_hor1 = rot90(kmap_hor1);
     %
     anatomypic=anatomypic_orig;
-    anatomypic = fliplr(anatomypic);
+%     anatomypic = fliplr(anatomypic);
     % anatomypic = rot90(anatomypic);
     % anatomypic = rot90(anatomypic);
     % anatomypic = rot90(anatomypic);
     
-    ang0 = fliplr(ang0);
+%     ang0 = fliplr(ang0);
     % ang0 = rot90(ang0);
     % ang0 = rot90(ang0);
     % ang0 = rot90(ang0);
     
-    ang1 = fliplr(ang1);
+%     ang1 = fliplr(ang1);
     % ang1 = rot90(ang1);
     % ang1 = rot90(ang1);
     % ang1 = rot90(ang1);
     
-    ang2 = fliplr(ang2);
+%     ang2 = fliplr(ang2);
     % ang2 = rot90(ang2);
     % ang2 = rot90(ang2);
     % ang2 = rot90(ang2);
     
-    ang3 = fliplr(ang3);
+%     ang3 = fliplr(ang3);
     % ang3 = rot90(ang3);
     % ang3 = rot90(ang3);
     % ang3 = rot90(ang3);
     
-    magS.hor = fliplr(magS.hor);
+%     magS.hor = fliplr(magS.hor);
     % magS.hor = rot90(magS.hor);
     % magS.hor = rot90(magS.hor);
     % magS.hor = rot90(magS.hor);
     
-    delay_hor = fliplr(delay_hor);
+%     delay_hor = fliplr(delay_hor);
     % delay_hor = rot90(delay_hor);
     % delay_hor = rot90(delay_hor);
     % delay_hor = rot90(delay_hor);
@@ -308,7 +308,7 @@ if figTag == 1;
     saveas(HorizDelay,strcat(AnalDir,filename22,'.tif'))
     saveas(HorizDelay,strcat(AnalDir,filename22,'.fig'))
     
-    close all
+    %close all
     
 end
 
@@ -424,43 +424,43 @@ end
     
     %% flip everything to be oriented correctly
     
-    kmap_vert1 = fliplr(kmap_vert1);
+%     kmap_vert1 = fliplr(kmap_vert1);
     % kmap_vert1 = rot90(kmap_vert1);
     % kmap_vert1 = rot90(kmap_vert1);
     % kmap_vert1 = rot90(kmap_vert1);
     
     anatomypic=anatomypic_orig;
-    anatomypic = fliplr(anatomypic);
+%     anatomypic = fliplr(anatomypic);
     % anatomypic = rot90(anatomypic);
     % anatomypic = rot90(anatomypic);
     % anatomypic = rot90(anatomypic);
     
-    ang0 = fliplr(ang0);
+%     ang0 = fliplr(ang0);
     % ang0 = rot90(ang0);
     % ang0 = rot90(ang0);
     % ang0 = rot90(ang0);
     
-    ang1 = fliplr(ang1);
+%     ang1 = fliplr(ang1);
     % ang1 = rot90(ang1);
     % ang1 = rot90(ang1);
     % ang1 = rot90(ang1);
     
-    ang2 = fliplr(ang2);
+%     ang2 = fliplr(ang2);
     % ang2 = rot90(ang2);
     % ang2 = rot90(ang2);
     % ang2 = rot90(ang2);
     
-    ang3 = fliplr(ang3);
+%     ang3 = fliplr(ang3);
     % ang3 = rot90(ang3);
     % ang3 = rot90(ang3);
     % ang3 = rot90(ang3);
     
-    magS.vert = fliplr(magS.vert);
+%     magS.vert = fliplr(magS.vert);
     % magS.vert = rot90(magS.vert);
     % magS.vert = rot90(magS.vert);
     % magS.vert = rot90(magS.vert);
     
-    delay_vert = fliplr(delay_vert);
+%     delay_vert = fliplr(delay_vert);
     % delay_vert = rot90(delay_vert);
     % delay_vert = rot90(delay_vert);
     % delay_vert = rot90(delay_vert);
@@ -667,7 +667,7 @@ if intensityFigTag == 1;
     respMagFilename = strcat(anim,'_LP',num2str(LP(x)),'_ResponseMag');
     saveas(RespMag,strcat(SaveDir,respMagFilename,'.tif'))
     saveas(RespMag,strcat(SaveDir,respMagFilename,'.fig'))
-    close all
+    %close all
     
 end
    
@@ -699,7 +699,7 @@ end
         end
     end
     
-    close all
+    %close all
     
 
 %% CREATE COMBINED THRESHOLD MAP
@@ -807,7 +807,7 @@ end
         
     end
     
-    close all
+    %close all
 
 %% SAVE VARIABLES
 
@@ -865,6 +865,6 @@ end
         
     end
     
-close all
+%close all
 
 end %ends LP loop
