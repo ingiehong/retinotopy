@@ -13,7 +13,7 @@ else
 %     h = java.net.InetAddress.getLocalHost();
 %     ipAddress = char(h.getHostAddress().toString());
 %     rip = ipAddress; 
-    rip = '10.194.190.56';
+    rip = '10.16.82.154';
     % rip = '10.1.38.88';  %2ph master 
     % rip = '10.194.195.180'; %Ingie's lab IP address
 end
