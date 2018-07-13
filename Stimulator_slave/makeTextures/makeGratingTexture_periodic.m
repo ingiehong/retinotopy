@@ -83,7 +83,10 @@ if ~P.separable
     for i = 1:length(tdom)
         
         Im = makePerGratFrame_insep(sdom,tdom,i,1);
-        
+        ImBackground = Im;
+        ImBackground(Im(:)==1) = 0;
+        ImBackground(Im(:)==-1) = P.background/256*2; 
+         
         if P.plaid_bit
             Im = makePerGratFrame_insep(sdom2,tdom2,i,2) + Im;
         end
@@ -105,7 +108,7 @@ if ~P.separable
             
             Im = Im - 2*noiseIm;
             Im(find(Im(:)<-1)) = -1;
-            
+            Im = Im + ImBackground;
   
             
         end
