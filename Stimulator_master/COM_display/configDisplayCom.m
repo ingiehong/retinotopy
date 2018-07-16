@@ -17,7 +17,7 @@ dbstop if error
 % h = java.net.InetAddress.getLocalHost();
 % ipAddress = char(h.getHostAddress().toString());
 % Mstate.stimulusIDP = ipAddress;
-Mstate.stimulusIDP = '10.194.213.208';
+Mstate.stimulusIDP = '10.194.190.56';
 
 %Mstate.stimulusIDP = '192.168.159.3';
 % Ingie's desktop IP='10.194.195.180' %GMH in 2017
