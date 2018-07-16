@@ -13,7 +13,7 @@ addpath([fileparts(which('ISI_Master')) filesep 'imager'])
 imager
 
 %% Stimulator
-addpath([fileparts(which('ISI_Master')) filesep 'Stimulator_master' filesep 'TempCodeStimulator'])
+%addpath([fileparts(which('ISI_Master')) filesep 'Stimulator_master' filesep 'TempCodeStimulator'])
 Stimulator
 
 %% Set window positions
