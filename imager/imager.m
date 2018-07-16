@@ -333,7 +333,7 @@ if srcinfo.ConstraintValue(2)<30
 end
 src.ShutterMode = 'Manual';
 src.Shutter=30;
-src.Gain=10;
+src.Gain=1;
 src.GammaMode = 'Manual';
 src.SharpnessMode = 'Manual';
 src.ExposureMode = 'Manual';
