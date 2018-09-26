@@ -3,14 +3,15 @@ function getAreaBorders_Ingie(anim,alt_expt,azi_expt)
 %% INPUTS
 %kmap_hor - Map of horizontal retinotopic location
 %kmap_vert - Map of vertical retinotopic location
-
+% Example code to run script getAreaBorders_Ingie('180817','000_000', '000_001')
+% getAreaBorders_Ingie('180817','000_002', '000_003')
 %% Set Save Directory & Low Pass Values
 
-LP = [.5 .75 1]; % to run different low pass values, worth trying anything from 0 to 2
+LP = [.9]%[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
 
 [token azi ] = strtok(azi_expt,'_');
 [token alt ] = strtok(alt_expt,'_');
-ExptID = strcat(anim,azi,alt)
+ExptID = strcat(anim,azi,alt);
 SaveDir = [pwd filesep ]; % ExptID filesep
 
 %% Generate and load kmaps for vertical and horizontal retinotopy
@@ -27,7 +28,7 @@ for iLP = 1:dimLP(2);
     load(kmapfilename)
     kmap_hor_orig= -(kret.kmap_hor); % negative to correct values 
     kmap_vert_orig=kret.kmap_vert;
-    
+%    keyboard
     %% Rotate & Up/Down Sample Maps
     % The images in Garrett et al '14 were collected at 39 pixels/mm.  It is
     % recommended that kmap_hor and kmap_vert be down/upsampled to this value
@@ -48,9 +49,9 @@ for iLP = 1:dimLP(2);
     kmap_hor = kmap_hor_orig; %Ingie added
     kmap_vert = kmap_vert_orig; % Ingie added
 %    pixpermm = 96.8; % Ingie changed this for current setting on 7/6
+    pixpermm = 96.8; %/2; % GMH added  39 was in original code
     
-% keyboard
-    pixpermm = 96.8/2; % GMH added  39 was in original code
+%    keyboard
     %% Compute visual field sign map
     
     mmperpix = 1/pixpermm;
@@ -78,14 +79,13 @@ for iLP = 1:dimLP(2);
     screenDim = get(0,'ScreenSize');
     figure(10), clf
     set(10,'Position',[0,0,screenDim(3),screenDim(4)])
-    
     subplot(3,4,1)
-    imagesc(xdom,ydom,kmap_hor,[-50 50]),
+    imagesc(xdom,ydom,kmap_hor,[-50 50]), %GMH azimuth example
     axis image, colorbar
     title('1. Horizontal (azim deg)')
     
     subplot(3,4,2)
-    imagesc(xdom,ydom,kmap_vert,[-50 50]),
+    imagesc(xdom,ydom,kmap_vert,[-50 50]), %GMH altitude example
     axis image, colorbar
     title('2. Vertical (alt deg)')
     
@@ -99,7 +99,7 @@ for iLP = 1:dimLP(2);
     gradmag = abs(VFS);
     figure(10), subplot(3,4,4),
     
-    threshSeg = 1.5*std(VFS(:));
+    threshSeg = 1.5*std(VFS(:)); % orig value was 1.5
     imseg = (sign(gradmag-threshSeg/2) + 1)/2;  %threshold visual field sign map at +/-1.5sig
     
     id = find(imseg);
@@ -107,7 +107,7 @@ for iLP = 1:dimLP(2);
     plotmap(imdum,[.1 2.1],pixpermm);
     colorbar off
     axis image
-    title(['4. +/-1.5xSig = ' num2str(threshSeg)])
+    title(['4. +/-1.5 xSig = ' num2str(threshSeg)]) %change this manually
     
     patchSign = getPatchSign(imseg,VFS);
     
@@ -335,7 +335,7 @@ for iLP = 1:dimLP(2);
 %    anatomypic = rot90(rot90(rot90(kret.AnatomyPic))); %removed one rot90()
 %    anatomypic = fliplr(kret.AnatomyPic); % GMH applied one fliplr instead of three or four rot90's
     anatomypic = kret.AnatomyPic;
-    imagesc(xdom,ydom,anatomypic)
+    imagesc(xdom,ydom,anatomypic) %GMH anatomy image
     colormap gray
     hold on
     title(strcat('Anatomy'),'FontSize',12,'Interpreter','none');
@@ -401,8 +401,7 @@ for iLP = 1:dimLP(2);
     axis equal; axis tight
     hold on;
     contour(xdom,ydom,im,[.5 .5],'k','LineWidth',2)
-    
-    
+   
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.fig')
     saveas(gcf,overlaysFig,'fig');
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.tif');

@@ -28,22 +28,29 @@ for x=1:length(LP)
     
     %% HORIZONTAL RETINOTOPY -----------
     Anim=anim;
-    Expt=strcat('u',AzExpt);
+    Expt=strcat('u',AzExpt); %GMH no longer need 'u'
     Expt1=AzExpt;
-    ExptID = strcat(anim,'_',Expt);
+    ExptID = strcat(anim,'_',Expt); %turned Expt to Expt1
     Horiz_ExptID = ExptID;
-    
+ 
     %% GET ANALYZER FILE
-    AnaDir = [AnalyzerDir,'\',ExptID '.analyzer'];
-    load(AnaDir,'Analyzer','-mat')
-    
+    [token azi ] = strtok(AzExpt,'_');
+    AnalyzerID = strcat(anim, '_u000', azi); %GMH work around to get correct analyzer ID
+    AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+    load(AnaDir,'Analyzer','-mat')  
+%     %following code intentionally wrong
+%     [token alt ] = strtok(AltExpt,'_');
+%     AnalyzerID = strcat(anim, '_u000', alt); %GMH work around to get correct analyzer ID
+%     AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+%      
     % confirm this is the horiz ret expt
     if strcmp(Analyzer.P.param{12}(3), 'altitude') == 1;
         disp('Experiments entered incorrectly.')
         %pause
     end
-    
+     
     Horiz_Analyzer = Analyzer;
+    %keyboard
     
     %% GET PROCESSED DATA
     filename=strcat(Anim,'_u',Expt1,'.mat');
@@ -63,9 +70,10 @@ for x=1:length(LP)
     Anatdir=pwd;
     %D = dir([Anatdir filesep '*.mat']);
     %pic=D(001).name;
-    filename=[Anatdir,filesep,ExptID,'_000_grab.mat'];
+    filename=[Anatdir,filesep,ExptID,'_000.mat'];
     image=load(filename);
-    anatomypic_orig=image.grab.img;
+    anatomypic_orig=image(1).im(:,:,1);
+    figure; imagesc(anatomypic_orig)
     
     %%
     if LP(x)==0
@@ -378,18 +386,30 @@ end
         
 %%  VERTICAL RETINOTOPY ---------------------------------------------------------
 
-    Expt=strcat('u',AltExpt);
-    Expt1=AltExpt;
+    Expt=strcat('u',AltExpt); 
+    Expt1 = AltExpt; %
     ExptID = strcat(anim,'_',Expt);
     Vert_ExptID=ExptID;
     
-    %% GET ANALYZER
-    AnaDir = [AnalyzerDir,'\',ExptID '.analyzer'];
-    load(AnaDir,'Analyzer','-mat')
+    %% GET ANALYZER %GMH double check this logic
+    [token alt ] = strtok(AltExpt,'_');
+    AnalyzerID = strcat(anim, '_u000', alt); %GMH work around to get correct analyzer ID
+    AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+    load(AnaDir,'Analyzer','-mat')  
+   % AnaDir = [AnalyzerDir,'\',ExptID '.analyzer']; %original don't use
+   % load(AnaDir,'Analyzer','-mat') %original don't use
+   
+%    % Following code is intentionally wrong
+%     [token azi ] = strtok(AzExpt,'_');
+%     AnalyzerID = strcat(anim, '_u000', azi); %GMH work around to get correct analyzer ID
+%     AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+%   
+ 
     Vert_Analyzer = Analyzer;
-    
+    %keyboard
+
 %% GET PROCESSED DATA
-    filename=strcat(Anim,'_u',Expt1,'.mat');
+    filename=strcat(Anim,'_u',Expt1,'.mat'); 
     filepath=strcat(ProcessedDir,filesep,filename);
     S = load(filepath);  %Returns the contents in the .mat under the structure S
     f1m = S.f1m;    %f1m is a cell array with images from each condition
@@ -631,7 +651,7 @@ if figTag == 1;
     
 end
 
-%% PLOT INTENSITY FIGURES
+%% PLOT INTENSITY FIGURES % GMH 
 
 if intensityFigTag == 1;
 
@@ -852,7 +872,7 @@ end
             'AnatomyPic',anatomypic,...
             'xsize', xsize,...
             'ysize', ysize);
-        
+  %      keyboard
         AnalDir1 = strcat(SaveDir,'Kmaps/');
         if iscell(AnalDir1)
             AnalDir1=AnalDir1{1};
