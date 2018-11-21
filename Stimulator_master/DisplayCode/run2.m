@@ -153,18 +153,19 @@ function plotData(src,event)
         syncInfo=setfield(syncInfo, 'dispSyncs', dispSyncTimes);
         syncInfo=setfield(syncInfo, 'acqSyncs', acqSyncTimes);
         
-    % Check for extra flashes in photodiode pulses
-    while abs(syncInfo.dispSyncs(2) - syncInfo.dispSyncs(1)-2) >0.1
-        disp('Erroneous first photodiode flash found.. deleting.')
-        syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
-    end
-    
+%% Check for extra flashes in photodiode pulses - this was an interim measure useful for debugging photodiode
+%     while abs(syncInfo.dispSyncs(2) - syncInfo.dispSyncs(1)-2) >0.1
+%         disp('Erroneous first photodiode flash found.. deleting.')
+%         syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
+%     end
+%%    
     diff(syncInfo.dispSyncs)
     saveSyncInfo(syncInfo)  %append .analyzer file
     onlineAnalysis(c,r,syncInfo)     %Compute F1
         
-    %save([ fileID '_syncInfo'], 'syncInfo' );
-	%disp(['saving ...' fileID '_syncInfo'])
+%Good debug statements
+%save([ fileID '_syncInfo'], 'syncInfo' );
+%disp(['saving ...' fileID '_syncInfo'])
 end
 
 
