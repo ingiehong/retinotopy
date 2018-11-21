@@ -2,7 +2,7 @@ function run2
 %% Acquires video and analog data in a loop 
 
 global GUIhandles Pstate Mstate trialno syncInfo analogIN lh
-disp('run2 starting')
+disp('AcquisitionLoop(run2) starting')
 if Mstate.running %otherwise 'getnotrials' won't be defined for play sample
     nt = getnotrials;
 end
@@ -82,7 +82,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     
     %This would otherwise get called by Displaycb 
     if ISIbit
-        disp('run2 looping')
+        disp('AcquisitionLoop(run2) recursively looping')
         run2  %Nothing should happen after this
     end
         
@@ -107,27 +107,24 @@ else
     end
 
 end
-disp('run2 done')
+disp('AcquisitionLoop(run2) done')
 
 
 
 %% run2.m and getsync
 function plotData(src,event)
-    disp('Starting daq listner...')
-    %global fileID savePath analogIN
-    
+    disp('Starting daq listner...')    
     savePath = parseString(Mstate.analyzerRoot,';');    
     savePath=savePath{1};
     fname = [Mstate.anim '_' sprintf('u%s',Mstate.unit) '_' Mstate.expt '_' sprintf('%03d',trialno-1)];
     fileID = [savePath '\' Mstate.anim '\' fname ];
-
     % fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
-    % savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
     if ~exist(savePath)
         mkdir(savePath)
     end
     timestamps=event.TimeStamps;
     data=event.Data;
+    % Following lines of code are good for debugging uses
     % figure; plot(timestamps,data);
     % xlabel('Time (seconds)');
     % ylabel('voltage (volts)');
@@ -135,7 +132,7 @@ function plotData(src,event)
     % title('Raw data from photodiode and camera');
     cameraPulseInd=find(diff(data(:,1)>1)==1);
     acqSyncTimes=cameraPulseInd/analogIN.Rate; % this will end up being syncInfo.acqSyncs
-    disp(['Analyzing ' num2str(size(acqSyncTimes)) ' seconds of analog data...'])
+    disp(['Analyzing ' num2str(size(acqSyncTimes,1)) ' seconds of analog data...'])
     % convert photodiode pulse into start time
     temp1=sgolayfilt(data(:,2),27,51);%27,51); 15,27
     temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
