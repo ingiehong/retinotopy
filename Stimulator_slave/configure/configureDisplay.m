@@ -1,10 +1,11 @@
 function configureDisplay(varargin)
-dbstop if error
+% Revision 1-Oct.-2018 G. Hwang & I. Hong
+% configShutter is no longer needed
 close all
 
-%clear all;
+clear all;
 
-Priority(2);  %Make sure priority is set to "real-time"  GMH 2 is realtime
+Priority(2);  %Make sure priority is set to "real-time"; 2=realtime
 
 % priorityLevel=MaxPriority(w);
 % Priority(priorityLevel);
@@ -16,7 +17,7 @@ configCom(varargin);
 
 configSync;
 
-%configShutter;  % GMH comment this out
+%configShutter;  % obsolete
 
 screenconfig;
 

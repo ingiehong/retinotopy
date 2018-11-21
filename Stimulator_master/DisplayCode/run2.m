@@ -1,5 +1,8 @@
 function run2
 %% Acquires video and analog data in a loop 
+%Revision 3-Oct-2018. G Hwang and I. Hong
+%Added function plotdata that creates syncInfo.acqSyncs and syncInfo.dispSyncs
+%both of which are mandatory for the *.analyzer file
 
 global GUIhandles Pstate Mstate trialno syncInfo analogIN lh
 disp('AcquisitionLoop(run2) starting')
@@ -22,7 +25,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     waitforDisplayResp   %Wait for serial port to respond from display
 
     if ISIbit
-        %start(analogIN)  %Start sampling acquistion and stimulus syncs GMH commented out
+        %start(analogIN)  %Start sampling acquistion and stimulus syncs 
         lh = addlistener(analogIN,'DataAvailable',@plotData); 
         disp('Photodiode/Frame strobe acquisition started!')
         startBackground(analogIN);
@@ -54,7 +57,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
         %%%Timing is not crucial for this last portion of the loop (both display and frame grabber/saving is inactive)...
 
         delete(lh) % Added to remove listener 
-        stop(analogIN)  %Stop sampling acquistion and stimulus syncs  %GMH
+        stop(analogIN)  %Stop sampling acquistion and stimulus syncs  % 
         
         %[syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] = getSyncTimes;   
         %syncInfo.dSyncswave = [];  %Just empty it for now
@@ -134,7 +137,7 @@ function plotData(src,event)
     acqSyncTimes=cameraPulseInd/analogIN.Rate; % this will end up being syncInfo.acqSyncs
     disp(['Analyzing ' num2str(size(acqSyncTimes,1)) ' seconds of analog data...'])
     % convert photodiode pulse into start time
-    temp1=sgolayfilt(data(:,2),27,51);%27,51); 15,27
+    temp1=sgolayfilt(data(:,2),27,51); 
     temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
     PDchan=find(diff(temp2>1.5)==1);   
     dispSyncTimes=PDchan/analogIN.Rate  %this will become syncInfo.dispSyncs

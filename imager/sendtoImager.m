@@ -1,4 +1,6 @@
 function sendtoImager(cmd)
+% Revision 1-Oct. 2018 G. Hwang
+% Commented out code exclusive to obsolete frame grabber
 
 global imagerhandles h;
 
@@ -62,10 +64,9 @@ switch(cmd(1))
 %        set(1,'Name','imager :: Sampling ::');
 %        drawnow;
         %h.mildig.Image = h.buf{1};
-
-
-        %h = GrabSaveLoop(h,fname,parport); %GMH
-        GrabSave(fname); %GMH
+        %h = GrabSaveLoop(h,fname,parport); %
+        
+        GrabSave(fname); %
         set(1,'Name','imager');
         drawnow;
 

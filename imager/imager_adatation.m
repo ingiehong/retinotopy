@@ -42,7 +42,7 @@ if ~exist(savePath)
     mkdir(savePath)
 end
 
-%% Camera initialization - in imager.m?
+%% Camera initialization - in imager.m
 
 vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
 src = getselectedsource(vid);
@@ -104,9 +104,6 @@ closepreview(vid);
 function plotData(src,event)
     global fileID savePath analogIN
      %plot(event.TimeStamps, event.Data)
-     %s.Rate=5000; %redundant - why can't I get this to be a global variable or pass into function
-     %fileID='test_u004_008'; %redundant - why can't I get this to be a global variable or pass into function
-     %savePath='C:\Users\Huganir lab\Documents\imager_data\TEST_04272018\'; %redundant
     timestamps=event.TimeStamps;
     data=event.Data;
     figure; plot(timestamps,data);

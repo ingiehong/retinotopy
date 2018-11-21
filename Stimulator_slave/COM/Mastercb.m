@@ -15,7 +15,7 @@ try
     end
     
     inString = inString(1:end-1);  %Get rid of the terminator
-    disp(['Recieved command from master Stimulator computer: ' inString ])
+    disp(['Received command from master Stimulator computer: ' inString ])
     
     delims = find(inString == ';');
     msgID = inString(1:delims(1)-1);  %Tells what button was pressed at master

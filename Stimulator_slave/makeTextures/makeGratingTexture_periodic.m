@@ -1,6 +1,10 @@
 function makeGratingTexture_periodic
-
-%make one cycle of the grating
+% Revision 7-Oct.-2018 I. Hong & G. Hwang
+% 
+% This code makes one cycle of the grating
+% Modified code to enable gray background
+% Im = Im + ImBackground; % Set to 0 for black, 256 for white; and 256/2 for gray background
+  
 
 global Mstate screenPTR screenNum %movieBlock 
 
@@ -85,7 +89,7 @@ if ~P.separable
         Im = makePerGratFrame_insep(sdom,tdom,i,1);
         ImBackground = Im;
         ImBackground(Im(:)==1) = 0;
-        ImBackground(Im(:)==-1) = P.background/256*2; 
+        ImBackground(Im(:)==-1) = P.background/256*2;  
          
         if P.plaid_bit
             Im = makePerGratFrame_insep(sdom2,tdom2,i,2) + Im;
@@ -108,7 +112,7 @@ if ~P.separable
             
             Im = Im - 2*noiseIm;
             Im(find(Im(:)<-1)) = -1;
-            Im = Im + ImBackground;
+            Im = Im + ImBackground; % Set to 0 for black, 256 for white; and 256/2 for gray background
   
             
         end

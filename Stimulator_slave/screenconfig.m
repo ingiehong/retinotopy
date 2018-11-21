@@ -5,7 +5,7 @@ global screenPTR screenNum Mstate
 %screens=Screen('Screens');
 %screenNum=max(screens);
 
-screenNum=2; % GMH changed this to position stimulation on left screen (12/19/17)
+screenNum=0; % The screen number depends on setup
 
 screenRes = Screen('Resolution',screenNum);
 

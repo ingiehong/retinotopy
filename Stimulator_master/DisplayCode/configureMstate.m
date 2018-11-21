@@ -1,13 +1,15 @@
 function configureMstate
-
+%revision 1-Oct.-2018 G. Hwang & I. Hong
+%M.state.anim has been revised to reflect date; it can be arranged to
+%reflect an animal designation number
 global Mstate
 
-Mstate.anim = datestr(now, 'yymmdd');
-Mstate.unit = '000';
+Mstate.anim = datestr(now, 'yymmdd'); %Ingie  - can this be made to be either a date or an animal label?
+Mstate.unit = '000'; %  intended for experiment type
 Mstate.expt = '000';
 
 Mstate.hemi = 'left';
-Mstate.screenDist = 10; %GMH need to ask Ingie about correct screen distance
+Mstate.screenDist = 10; %distance between rodent eye and screen
 
 Mstate.monitor = 'LIN';  %This should match the default value in Display
 
@@ -17,17 +19,11 @@ Mstate.syncSize = 51;  %Size of the screen sync in cm
 
 Mstate.running = 0;
 
-%Mstate.analyzerRoot = ['C:\VStimFiles\AnalyzerFiles' ' ; ' '\\ACQUISITION\neurostuff\AnalyzerFiles'];
-%Mstate.analyzerRoot = 'C:\neurodata\AnalyzerFiles_new';
-%Mstate.analyzerRoot = 'C:\Users\hwanggm1\Documents\data\Retinopathy\AnalyzerFiles' %GMH
+Mstate.analyzerRoot = 'C:\Users\Huganir lab\Documents\imager_data'; %This should point to where images will be stored
 
-Mstate.analyzerRoot = 'C:\Users\Huganir lab\Documents\imager_data';
-%update path for Huganir system
-%Mstate.stimulusIDP = '10.194.195.180';  %Neighbor (ISI computer) %GMH update this
-%Mstate.stimulusIDP = '172.0.0.1';
-Mstate.stimulusIDP = '10.194.213.208';
+Mstate.stimulusIDP = '10.194.213.208'; %This point to slave computer
 
-%% for autodetection IP on same computer
+%% for autodetection IP on same computer if using same computer as both master and slave
 % h = java.net.InetAddress.getLocalHost();
 % ipAddress = char(h.getHostAddress().toString());
-% Mstate.stimulusIDP = ipAddress; % '192.168.159.3';  
+% Mstate.stimulusIDP = ipAddress; 

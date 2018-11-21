@@ -27,7 +27,6 @@ daq.getDevices;
   ch_stim.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008 
 %%
 saveFlag=1; %set to 1 to save image files
-%animID='xx0_u000_003'; % must manually update this ID each experiment
 fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
 savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
 if ~exist(savePath)
@@ -99,9 +98,6 @@ closepreview(vid);
 function plotData(src,event)
     global fileID savePath s
      %plot(event.TimeStamps, event.Data)
-     %s.Rate=5000; %redundant - why can't I get this to be a global variable or pass into function
-     %fileID='test_u004_008'; %redundant - why can't I get this to be a global variable or pass into function
-     %savePath='C:\Users\Huganir lab\Documents\imager_data\TEST_04272018\'; %redundant
     timestamps=event.TimeStamps;
     data=event.Data;
     figure; plot(timestamps,data);
@@ -143,11 +139,4 @@ end
 %    stoppreview(vid);
 %    closepreview(vid);
 
-
-
-
-%Start acq
-  
-%data = startForeground(s);
-%[data,timestamps] = startForeground(s);
 

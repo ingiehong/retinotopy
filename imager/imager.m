@@ -27,18 +27,13 @@ function varargout = imager(varargin)
 % Edit the above text to modify the response to help imager
 
 % Last Modified by GUIDE v2.5 26-Dec-2017 13:25:50
-% Grace Hwang is editing code
-dbstop if error
+% Revision 1-Oct.-2018 G. Hwang
+% Commented out serial communication code that is now obsolete  
+% This code is currently set up to use a GigE camera though a 
+% MATLAB Image Acquisition Toolbox
+
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
-%from gui_mainfcn
-%gui_StateFields =  {'gui_Name'
-%    'gui_Singleton'
-%    'gui_OpeningFcn'
-%    'gui_OutputFcn'
-%    'gui_LayoutFcn'
-%    'gui_Callback'};
-
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
     'gui_OpeningFcn', @imager_OpeningFcn, ...
@@ -74,7 +69,7 @@ FPS = 10;  %% frames per second
 
 %%  serial communication...
 
-% delete(instrfind)   % GMH commented
+% delete(instrfind)   %
 
 % The smarthome X10 link
 
@@ -89,24 +84,14 @@ FPS = 10;  %% frames per second
 % pause(10);
 
 %% Previous code
-%%serial link for the camera  %GMH commenting out
-%%delete(instrfind ('Tag','clser'));  %% just in case it crashed %GMH
-%%commented out
-%%scl = serial('COM3','Tag','clser','Terminator','CR',... % GMH commented
+%%serial link for the camera  %
+%%delete(instrfind ('Tag','clser'));  %% just in case it crashed 
+%%scl = serial('COM3','Tag','clser','Terminator','CR',... % 
 %%out
-%%    'DataTerminalReady','on','RequestToSend','on','bytesavailablefcnmode','byte'); %GMH commented out
-%%fopen(scl); % GMH commented out
-%%handles.scl = scl; %GMH commented out
+%%    'DataTerminalReady','on','RequestToSend','on','bytesavailablefcnmode','byte'); %
+%%fopen(scl); % 
+%%handles.scl = scl; %
 
-% GMH adding this block
-% this code should find Dalsa camera
-% vid = videoinput('gige', 1, 'Mono10');
-% src = getselectedsource(vid);
-% preview(vid);
-% vid.FramesPerTrigger = 1;
-% src.ExposureTime = 99000;
-% src.AcquisitionFrameRate = 10;
-%%% end of block
 
 %%sit = serial('COM2','Tag','ilser','Terminator','CR','DataTerminalReady',...
 %%    'off','RequestToSend','off');
@@ -114,62 +99,45 @@ FPS = 10;  %% frames per second
 %% This now uses the internet RTS-8 serial server (port0)
 
 %%%illuminator serial 
-%GMH comment out for now
+%obsolete
 %sit = serial('COM2','Tag','ilser','Terminator','CR','DataTerminalReady',...
 %    'off','RequestToSend','off');
 %fopen(sit);
 %handles.sit = sit;
 
 
-%% Set camera mode
+%% Set camera mode is now obsolete
 
-%y = clsend('sem 7');  % GMH commented out
-%y = clsend(sprintf('ssf %d',round(FPS))); %GMH commented out
-%y = clsend('sbm 2 2'); %GMH commented out
+%y = clsend('sem 7');  % 
+%y = clsend(sprintf('ssf %d',round(FPS))); %
+%y = clsend('sbm 2 2'); %
 
-%% Set up the parallel port output
+%% Set up the parallel port output - this section is now obsolete
 
 global parport;
 
-%% GMH should now assign parport to a new session of DAQ
-% session-based interface, Transition your code to session-based interface
-%parport= daq.createSession('ni'); %GMH commented out
-%addDigitalChannel(parport, 'Dev1',0,'Bidirectional');  %GMH thinks this replaces putvalue(parport,0)
-
-%% Originally we used the parallel port...
+% Originally we used the parallel port...
 %
 % parport = digitalio('parallel','LPT1');
 % set(parport,'Tag','plp');
 % addline(parport,0,0,'out');
-
-%%
-
-%% ...but now we are using the NI-PCI-6014
-
-% 
+% ...but now we are using the NI-PCI-6014
 % parport = digitalio('nidaq',1);
 % set(parport,'Tag','plp');
 % addline(parport,0,'out');
 % 
-
-%putvalue(parport,0);  %% make sure it is zero to begin with %GMH testing
-
+%putvalue(parport,0);  %% make sure it is zero to begin with 
 %%% But now we are using the audio output!!!!
-
 %handles.blip = audioplayer(10*sin(linspace(0,2*pi,32)),30000); 
+%Rename
+%handles.milapp  = handles.activex25; 
+%handles.mildig  = handles.activex24; 
+%handles.mildisp = handles.activex23; 
+%handles.milimg  = handles.activex26; 
+%handles.milsys  = handles.activex27; 
+%handles.milsys.Allocate;  %% Allocate Mil system 
 
-%% Rename
-
-%handles.milapp  = handles.activex25; %GMH commented out
-%handles.mildig  = handles.activex24; %GMH commented out
-%handles.mildisp = handles.activex23; %GMH commented out
-%handles.milimg  = handles.activex26; %GMH commented out
-%handles.milsys  = handles.activex27; %GMH commented out
-
-%handles.milsys.Allocate;  %% Allocate Mil system %GMH commented out
-
-%% I can't get the interrupt to work!
-
+%% I can't get the interrupt to work! % from original github download
 % params = zeros(1,3,'uint64');
 % params(1) = 128;
 % params(2) = 128;
@@ -185,8 +153,6 @@ global parport;
 % ;   %% enable interrupt
 % handles.milsys.set('UserBitChangedEvent',1);  %% Allow calls to the event handler
 
-%GMH commented out following block
-%Begin block GMH
 %handles.mildisp.set('OwnerSystem',handles.milsys,...
 %    'DisplayType','dispActiveMILWindow');
 %handles.mildisp.Allocate
@@ -194,8 +160,6 @@ global parport;
 %handles.mildig.set('OwnerSystem',handles.milsys,'GrabFrameEndEvent',0,...
 %    'GrabFrameStartEvent',0,'GrabStartEvent',0,'GrabEndEvent',0,...
 %    'GrabMode','digAsynchronousQueue');
-%End block GMH
-
 % From mil.h
 % #define M_ARM_CONTINUOUS                              9L
 % #define M_ARM_MONOSHOT                                10L
@@ -208,21 +172,18 @@ global parport;
 % #define M_HARDWARE_PORT7                              34L
 % #define M_HARDWARE_PORT8                              35L
 % #define M_HARDWARE_PORT9                              36L
-
-
 %%handles.mildig.registerevent(@dighandler);  %% event handler for all digitizer events...
 %%This was too slow!
+% triggering - I will start/stop sampling async mode.
+% The parallel port will spit out pulses sampled by Cerebus
+% set(handles.mildig,'TriggerSource',35,'TriggerMode',13,'TriggerEnabled',0);
+% handles.mildig.set('UserInFormat','digTTL');
 
-%% triggering - I will start/stop sampling async mode.
-%% The parallel port will spit out pulses sampled by Cerebus
-%% set(handles.mildig,'TriggerSource',35,'TriggerMode',13,'TriggerEnabled',0);
-%% handles.mildig.set('UserInFormat','digTTL');
 
-%C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager\original dcfs GMH
-GMHdir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager';
+savedir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager';
 %%%% Ian code...
 global ROIcrop
-%handles.mildig.set('Format', GMHdir);  %c:\imager Preset the binning to 2x2
+%handles.mildig.set('Format', savedir);  %c:\imager Preset the binning to 2x2
 
 y = clsend('sbm 2 2');
 
@@ -278,13 +239,13 @@ set(handles.timer,'Period',0.5,'BusyMode','drop','ExecutionMode',...
     'fixedSpacing','TimerFcn',@timerhandler)
 
 %% Now the data directory, file name, and time tag
-%'C:\Users\Ingie\Documents\imager_data';
-% handles.datatxt ='C:\Users\Ingie\Documents\imager_data\xx0'; %'c:\imager_data\xx0';
+
+% handles.datatxt = 'c:\imager_data\xx0'; % this file structure is obsolete
 handles.unit = 'u000_000';
 handles.time_tag = 0;
 
 
-%% Now the udp object
+%% Now the udp object 
 % global handles
 % 
 % Masterport = 'COM4';
@@ -299,9 +260,6 @@ handles.time_tag = 0;
 % handles.masterlink.Terminator = 'CR';
 % fopen(handles.masterlink);
 % handles.masterlink.BytesAvailableFcn = @udpcb;
-
-
-
 % delete(instrfind('Tag','imagerudp'));
 % handles.udp = udp('','LocalPort',2020,'Tag','imagerudp');  %% listen on 2020
 % set(handles.udp,'BytesAvailableFcnCount',2,'BytesAvailableFcn',@udpcb);
@@ -326,10 +284,12 @@ src = getselectedsource(vid);
 src.FrameRate = FPS;
 if src.FrameRate ~= FPS
     error('Framerate could not be set to proper value. Please restart Matlab and try again.')
+    keyboard
 end
 srcinfo=propinfo(src,'Shutter');
 if srcinfo.ConstraintValue(2)<30
     error('Shutter could not be set to 30ms. Please restart Matlab and try again.')
+    keyboard
 end
 src.ShutterMode = 'Manual';
 src.Shutter=30;
@@ -431,7 +391,7 @@ function panx_Callback(hObject, eventdata, handles)
 
 px = get(handles.panx,'Value');
 py = get(handles.pany,'Value');
-%handles.mildisp.Pan(px,-py); GMH commented out due to error message
+%handles.mildisp.Pan(px,-py);  
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1071,16 +1031,16 @@ handles.mildig.Free;
 
 switch(idx)
     case 1,     % 1x1
-        handles.mildig.set('Format',[ GMHdir '\1x1bin_dlr.dcf' ] ); %GMH
+        handles.mildig.set('Format',[ savedir '\1x1bin_dlr.dcf' ] );  
         y = clsend('sbm 1 1');
     case 2,     % 2x2
-        handles.mildig.set('Format',[ GMHdir '\2x2bin_dlr.dcf' ]);% GMH'C:\imager\2x2bin_dlr.dcf');
+        handles.mildig.set('Format',[ savedir '\2x2bin_dlr.dcf' ]); 
         y = clsend('sbm 2 2');
     case 3,     % 4x4
-        handles.mildig.set('Format',[ GMHdir '\4x4bin_dlr.dcf' ]);
+        handles.mildig.set('Format',[ savedir '\4x4bin_dlr.dcf' ]);
         y = clsend('sbm 4 4');
     case 4,     % 8x8
-        handles.mildig.set('Format', [ GMHdir '\8x8bin_dlr.dcf' ]);
+        handles.mildig.set('Format', [ savedir '\8x8bin_dlr.dcf' ]);
         y = clsend('sbm 8 8');
 end
 
@@ -1363,8 +1323,8 @@ if(strcmp(r,'Yes'))
     fname = strrep(fname,'-','_');
     fname = [fname '.mat'];
     fname(2) = ':';
-    save(fname,'grab'); %GMH this is where raw file is saved to disk
-    keyboard
+    save(fname,'grab'); 
+
 end
 delete(10);
         
@@ -1576,7 +1536,6 @@ function checkbox8_Callback(hObject, eventdata, handles)
 
 smarthome('camera',get(hObject,'Value'));
 
-
 % --- Executes on selection change in popupmenu9.
 function popupmenu9_Callback(hObject, eventdata, handles)
 % hObject    handle to popupmenu9 (see GCBO)
@@ -1599,8 +1558,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function edit14_Callback(hObject, eventdata, handles)
 % hObject    handle to edit14 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1622,7 +1579,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 function setvis(handle,state)
 
 list = allchild(handle);
@@ -1630,10 +1586,6 @@ for(j=1:length(list))
     set(list(j),'Visible',state);
 end
 set(handle,'Visible',state);
-
-
-
-
 
 % --- Executes on button press in selectROI.
 function selectROI_Callback(hObject, eventdata, handles)
@@ -1668,8 +1620,8 @@ if(strcmp(r,'Yes'))
     ROIcrop = round(ROIcrop);
 end
 close(10)
-GMHdir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager';
-save([GMHdir '\lastROI' ],'ROIcrop'); %'C:\imager\lastROI','ROIcrop')
+savedir= 'C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager';
+save([savedir '\lastROI' ],'ROIcrop'); %'C:\imager\lastROI','ROIcrop')
 
 function hwroisizetxt_Callback(hObject, eventdata, handles)
 % hObject    handle to hwroisizetxt (see GCBO)
@@ -1716,10 +1668,6 @@ for(i=1:2)
     set(imagerhandles.child{i}.ChildRegion,'SizeY',imagerhandles.hwroisize);
 end
 
-
-
-
-
 % --- Executes on button press in resetCrop.
 function resetCrop_Callback(hObject, eventdata, handles)
 % hObject    handle to resetCrop (see GCBO)
@@ -1730,13 +1678,12 @@ global IMGSIZE ROIcrop
 
 ROIcrop = [0 0 IMGSIZE IMGSIZE];
 
-
 % --- Executes on button press in getLastROI.
 function getLastROI_Callback(hObject, eventdata, handles)
 % hObject    handle to getLastROI (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global ROIcrop
-load('C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager\lastROI', 'ROIcrop')
+load(savedir, 'ROIcrop')
 %load('C:\imager\lastROI','ROIcrop') %need to update this with new info on lastROI
 ROIcrop
