@@ -12,15 +12,15 @@ function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
  
 %if get(GUIhandles.main.analysisFlag,'value')
     
-    disp(['Starting online phase analysis...'])
+    disp(['Starting offline phase analysis...'])
     Grabtimes = syncInfo.acqSyncs;
     %Stimulus starts on 2nd sync, and ends on the second to last.  I also
     %get rid of the last bar rotation (dispSyncs(end-1)) in case it is not an integer multiple
     %of the stimulus trial length
-    Disptimes = syncInfo.dispSyncs(2:end-2) 
+    Disptimes = syncInfo.dispSyncs(2:end-2) ;
     
     %T = getparam('t_period')/60;
-    T = mean(diff(Disptimes)) %This one might be more accurate
+    T = mean(diff(Disptimes)); %This one might be more accurate
     disp(['Detected ' num2str(length(Disptimes)-1) ' trials of visual stimulation. Average length: ' num2str(T) ])
     fidx = find(Grabtimes>Disptimes(1) & Grabtimes<Disptimes(end));  %frames during stimulus
 
