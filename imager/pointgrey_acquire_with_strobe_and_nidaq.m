@@ -59,23 +59,11 @@ src.GammaMode = 'Manual';
 src.SharpnessMode = 'Manual';
 src.ExposureMode = 'Manual';
 
-%vid = videoinput('pointgrey', 1, 'F7_Raw16_1920x1200_Mode7');
-% vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
-% src = getselectedsource(vid);
-% src.ExposureMode = 'Manual';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-% src.FrameRateMode = 'Manual';
-% src.GainMode = 'Manual';
-% src.GammaMode = 'Manual';
-% src.SharpnessMode = 'Manual';
-% src.ShutterMode = 'Manual';
-% src.FrameRate = 10;
-% src.Shutter=30;
-% src.Gain=10;
-
-%if abs(src.Shutter-99.5003) > 1 
-%    error('Wrong framerate or shutter time. Run FlyCapture and set framerate to 10FPS.')
-%end
+if abs(src.Shutter-99.5003) > 1 
+    error('Wrong framerate or shutter time. Run FlyCapture and set framerate to 10FPS.')
+end
 %If frame rate cannot be adjusted using MATLAB, use FlyCapture2 Camera
+
 %Selection tool
 src.Strobe2 = 'Off';
 %triggerconfig(vid, 'hardware', 'risingEdge', 'externalTriggerMode0-Source0');
