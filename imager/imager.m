@@ -26,7 +26,7 @@ function varargout = imager(varargin)
 
 % Edit the above text to modify the response to help imager
 
-% Last Modified by GUIDE v2.5 26-Dec-2017 13:25:50
+% Last Modified by GUIDE v2.5 12-Feb-2019 14:34:24
 % Revision 1-Oct.-2018 G. Hwang
 % Commented out serial communication code that is now obsolete  
 % This code is currently set up to use a GigE camera though a 
@@ -64,8 +64,8 @@ function imager_OpeningFcn(hObject, eventdata, handles, varargin)
 %% Create
 
 global IMGSIZE FPS;
-
 FPS = 10;  %% frames per second
+
 
 %%  serial communication...
 
@@ -180,8 +180,7 @@ global parport;
 % handles.mildig.set('UserInFormat','digTTL');
 
 
-savedir='C:\Users\Ingie\Documents\My Code\GraceHwang\Master\imager';
-%%%% Ian code...
+%%%% Ian's code...
 global ROIcrop
 %handles.mildig.set('Format', savedir);  %c:\imager Preset the binning to 2x2
 
@@ -275,7 +274,7 @@ imagerhandles.hwroi = [256 256];  %% Center of the image data region of interest
 imagerhandles.hwroisize = 128;
 
 
-%% Modern MATLAB Image Acquisition Toolbox-based code
+%% Modern MATLAB Image Acquisition Toolbox-based camera acquisition code
 global vid src 
 
 vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
@@ -293,7 +292,7 @@ if srcinfo.ConstraintValue(2)<30
 end
 src.ShutterMode = 'Manual';
 src.Shutter=30;
-src.Gain=1;
+src.Gain=0;
 src.GammaMode = 'Manual';
 src.SharpnessMode = 'Manual';
 src.ExposureMode = 'Manual';
@@ -306,10 +305,13 @@ vid.FramesPerTrigger = (str2num(get(findobj('Tag','timetxt'),'String')))*src.Fra
 vidRes = vid.VideoResolution;
 nBands = vid.NumberOfBands;
 imagerhandles.hImage = image( handles.videoaxes, zeros(vidRes(2), vidRes(1), nBands) );
-preview(vid, imagerhandles.hImage);
+imagerhandles.preview = preview(vid, imagerhandles.hImage);
 
-preview(vid);
+%preview(vid);
 disp('Preview started')
+
+pause(0.2)
+histbox_Callback(handles.histbox, eventdata, handles)
 
 %% End of insert 
 
@@ -466,6 +468,15 @@ function histbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of histbox
+
+global imagerhandles
+histogram(handles.histaxes, imagerhandles.preview.CData(:), 0:255)
+image(handles.jetaxis, imagerhandles.preview.CData)
+set(handles.jetaxis,'xticklabel',[])
+set(handles.jetaxis,'yticklabel',[])
+axis(handles.jetaxis, 'image')
+colormap(handles.jetaxis,  jet)
+colorbar(handles.jetaxis,'Location' , 'southoutside')
 
 
 % --- Executes on button press in autoscale.
@@ -1181,8 +1192,12 @@ function setlight_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 val = round(get(hObject,'Value'));
-itsend(sprintf('DAC=%03d',val));
+% itsend(sprintf('DAC=%03d',val));
 
+
+global analogOUT
+outputSingleScan(analogOUT,val*5/256); %changes LED intensity
+handles.setlightpower.String = num2str(val);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1200,6 +1215,11 @@ else
     set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
 
+configAnalogOutput % Setup Analog output channel to control LED
+global analogOUT
+handles.setlight.Enable='off';
+handles.setlightpower.Enable='off';
+outputSingleScan(analogOUT,0); %changes LED intensity
 
 % --- Executes on button press in itpower.
 function itpower_Callback(hObject, eventdata, handles)
@@ -1210,7 +1230,17 @@ function itpower_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of itpower
 
 val = get(hObject,'Value');
-itsend(['SSR=' num2str(val)]);
+%itsend(['SSR=' num2str(val)]);
+global analogOUT
+if val==1 
+    handles.setlight.Enable='on';
+    handles.setlightpower.Enable='on';
+    outputSingleScan(analogOUT,handles.setlight.Value*5/256); %changes LED intensity
+else
+    handles.setlight.Enable='off';
+    handles.setlightpower.Enable='off';
+    outputSingleScan(analogOUT,0); %changes LED intensity
+end
 
 
 % --- Executes on button press in ttlpulse.
@@ -1687,3 +1717,62 @@ global ROIcrop
 load(savedir, 'ROIcrop')
 %load('C:\imager\lastROI','ROIcrop') %need to update this with new info on lastROI
 ROIcrop
+
+
+
+function setlightpower_Callback(hObject, eventdata, handles)
+% hObject    handle to setlightpower (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of setlightpower as text
+%        str2double(get(hObject,'String')) returns contents of setlightpower as a double
+
+val = str2num(get(hObject,'String'));
+if val >= 0 && val <= 255 
+    handles.setlight.Value = val;
+    global analogOUT
+    outputSingleScan(analogOUT,val*5/256); %changes LED intensity
+else
+    warning('Power set to invalid value. Please set to between 0-255.')
+end
+    
+
+
+% --- Executes during object creation, after setting all properties.
+function setlightpower_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to setlightpower (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on slider movement.
+function setGain_Callback(hObject, eventdata, handles)
+% hObject    handle to setGain (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+%% Modern MATLAB Image Acquisition Toolbox-based camera acquisition code
+
+global vid src 
+src.Gain=hObject.Value;
+
+% --- Executes during object creation, after setting all properties.
+function setGain_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to setGain (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
