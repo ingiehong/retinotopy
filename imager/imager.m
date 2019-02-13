@@ -184,14 +184,14 @@ global parport;
 global ROIcrop
 %handles.mildig.set('Format', savedir);  %c:\imager Preset the binning to 2x2
 
-y = clsend('sbm 2 2');
+%y = clsend('sbm 2 2');
 
 %set(handles.binning,'enable','off')
 
 %handles.mildig.Allocate;
 
-IMGSIZE = [ 512 ]; %handles.mildig.get('SizeX');  %% get the size
-ROIcrop = [0 0 IMGSIZE IMGSIZE];  %Preset to full image
+IMGSIZE = [ 300 ]; %handles.mildig.get('SizeX');  %% get the size
+ROIcrop = [0 0 300 480];  %Preset to full image
 
 
 %handles.milimg.set('CanGrab',1,'CanDisplay',1,'CanProcess',0, ...
@@ -283,12 +283,10 @@ src = getselectedsource(vid);
 src.FrameRate = FPS;
 if src.FrameRate ~= FPS
     error('Framerate could not be set to proper value. Please restart Matlab and try again.')
-    keyboard
 end
 srcinfo=propinfo(src,'Shutter');
 if srcinfo.ConstraintValue(2)<30
     error('Shutter could not be set to 30ms. Please restart Matlab and try again.')
-    keyboard
 end
 src.ShutterMode = 'Manual';
 src.Shutter=30;
@@ -470,7 +468,9 @@ function histbox_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of histbox
 
 global imagerhandles
-histogram(handles.histaxes, imagerhandles.preview.CData(:), 0:255)
+h=histogram(handles.histaxes, imagerhandles.preview.CData(:), 0:255);
+disp([num2str(h.Values(end)/sum(h.Values(1:end))*100) '% of pixels saturated'])
+
 image(handles.jetaxis, imagerhandles.preview.CData)
 set(handles.jetaxis,'xticklabel',[])
 set(handles.jetaxis,'yticklabel',[])
@@ -698,28 +698,35 @@ function popupmenu2_Callback(hObject, eventdata, handles)
 idx = get(hObject,'Value');
 switch(idx)
     case 1,     % stopped
-        handles.mildig.Halt;
-        stop(handles.timer);
-        handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
-        handles.mildig.Image = handles.milimg;  %% restore image
+        global vid imagerhandles 
+        stoppreview(vid);
+        disp('Preview stopped')
+        %handles.mildig.Halt;
+        %stop(handles.timer);
+        %handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
+        %handles.mildig.Image = handles.milimg;  %% restore image
         %%set(handles.mildig,'TriggerEnabled',0); %% disable hardware trigger
     case 2,     %grab cont
-        handles.mildig.Image = handles.milimg;  %% restore image
-        stop(handles.timer);
-        handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
+%         handles.mildig.Image = handles.milimg;  %% restore image
+%         stop(handles.timer);
+%         handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
         %%set(handles.mildig,'TriggerEnabled',0); %% disable hardware trigger
-        handles.mildig.GrabContinuous;
+%         handles.mildig.GrabContinuous;
     case 3,    %% adjust illumination
-        handles.mildig.Image = handles.milimg;  %% restore image
-        handles.mildig.Halt;
-        handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
+%         handles.mildig.Image = handles.milimg;  %% restore image
+%         handles.mildig.Halt;
+%         handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
         %%set(handles.mildig,'TriggerEnabled',0); %% disable hardware trigger
-        start(handles.timer);
-    case 4,
-        handles.mildig.Halt;
-        stop(handles.timer);
-        handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
-        handles.milimg.Load('tv.raw',0);
+%         start(handles.timer);
+    case 4,     % acquisition
+        global vid imagerhandles 
+        imagerhandles.preview = preview(vid, imagerhandles.hImage);
+        disp('Preview started')
+
+        %handles.mildig.Halt;
+        %stop(handles.timer);
+        %handles.mildig.set('GrabEndEvent',0,'GrabStartEvent',0);
+        %handles.milimg.Load('tv.raw',0);
         %%set(handles.mildig,'TriggerEnabled',0); %% disable hardware trigger
 end
 
@@ -1320,16 +1327,31 @@ function grabimage_Callback(hObject, eventdata, handles)
 
 global imagerhandles IMGSIZE ROIcrop;
 
-img = zeros(ROIcrop(3),ROIcrop(4),'uint16');
-zz  = zeros(ROIcrop(3),ROIcrop(4),'uint16');
-img = imagerhandles.milimg.Get(zz,IMGSIZE^2,-1,ROIcrop(1),ROIcrop(2),ROIcrop(3),ROIcrop(4));
+%img = zeros(ROIcrop(3),ROIcrop(4),'uint16');
+%zz  = zeros(ROIcrop(3),ROIcrop(4),'uint16');
+%img = imagerhandles.milimg.Get(zz,IMGSIZE^2,-1,ROIcrop(1),ROIcrop(2),ROIcrop(3),ROIcrop(4));
+
+img = zeros(ROIcrop(3),ROIcrop(4),'double');
+
+figure(10);
+k=1;
+r='Average more';
+while strcmp(r,'Average more')
+    img = img*(k-1)/k + double(imagerhandles.preview.CData)/k;
+    pause(0.1)
+    imagesc(img), axis image; truesize
+    title(['Grabbing image: # ' num2str(k) ' frames averaged at 10hz'])
+    if mod(k,20)==0
+        r = questdlg('Do you want to save it?','Single Grab','Yes','No', 'Average more','Yes');
+    end
+    k=k+1;
+end
 
 grab.img = img;       %% image
 grab.clock = clock;   %% time stamp
 grab.ROIcrop = ROIcrop;
-figure(10);
-imagesc(grab.img'),axis off, colormap gray; truesize
-r = questdlg('Do you want to save it?','Single Grab','Yes','No','Yes');
+%imagesc(grab.img'),axis off, colormap gray; truesize
+
 if(strcmp(r,'Yes'))
     
     grab.comment = inputdlg('Please enter description:','Image Grab',1,{'No description'},'on');
@@ -1347,14 +1369,14 @@ if(strcmp(r,'Yes'))
     fname = [dd 'grab_' lower(get(imagerhandles.animaltxt,'String')) '_' ...
         get(imagerhandles.unittxt,'String') '_' ...
         get(imagerhandles.expttxt,'String') '_' ...
-        datestr(now)];
-    fname = strrep(fname,' ','_');
-    fname = strrep(fname,':','_');
-    fname = strrep(fname,'-','_');
-    fname = [fname '.mat'];
-    fname(2) = ':';
-    save(fname,'grab'); 
-
+        datestr(now,'HHMMSS')];
+    %fname = strrep(fname,' ','_');
+    %fname = strrep(fname,':','_');
+    %fname = strrep(fname,'-','_');
+    %fname = [fname '.mat'];
+    %fname(2) = ':';
+    save([fname '.mat'],'grab'); 
+    save_tif(uint16(img*(2^8)), [fname '.tif']) 
 end
 delete(10);
         
