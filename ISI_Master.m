@@ -6,22 +6,18 @@
 % Acquired data will be saved to C:\Users\USERNAME\Documents\imager_data
 
 %% Close all windows and clear all variables, including hidden globals
-clear all
+
 close all force % close all windows
 clearvars -global % clear all variables, including hidden globals
 imaqreset % To reset image acquisition toolbox, in case of a camera error
 
-%% Set up the PATH and display settings
+%% Set up the PATH and run Stimulator
 addpath(genpath([fileparts(which('ISI_Master')) filesep 'Stimulator_master']));
-%configDisplayCom 
+Stimulator
 
-%% these lines set up the imager from Master MATLAB instance
+%% Set up the PATH and run imager
 addpath([fileparts(which('ISI_Master')) filesep 'imager'])
 imager
-
-%% Stimulator
-%addpath([fileparts(which('ISI_Master')) filesep 'Stimulator_master' filesep 'TempCodeStimulator'])
-Stimulator
 
 %% Set window positions
 
