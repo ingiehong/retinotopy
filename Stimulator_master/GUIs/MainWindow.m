@@ -168,7 +168,8 @@ global Mstate
 
 %This is not actually necessary since updateMstate is always called prior
 %to showing stimuli...
-Mstate.hemi = get(handles.hemisphere,'string');
+Mstate.stimulusIDP = get(handles.stimulusIDP,'string');
+configDisplayCom
 
 % --- Executes during object creation, after setting all properties.
 function hemisphere_CreateFcn(hObject, eventdata, handles)
