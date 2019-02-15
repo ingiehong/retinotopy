@@ -26,7 +26,7 @@ function varargout = imager(varargin)
 
 % Edit the above text to modify the response to help imager
 
-% Last Modified by GUIDE v2.5 12-Feb-2019 14:34:24
+% Last Modified by GUIDE v2.5 13-Feb-2019 17:43:11
 % Revision 1-Oct.-2018 G. Hwang
 % Commented out serial communication code that is now obsolete  
 % This code is currently set up to use a GigE camera though a 
@@ -332,6 +332,15 @@ function varargout = imager_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+
+% --- Executes during object creation, after setting all properties.
+function videoaxes_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to videoaxes (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate videoaxes
+disp('Opening imager for camera acquisition...')
 
 % --- Executes on button press in Grab.
 function Grab_Callback(hObject, eventdata, handles)
@@ -1798,3 +1807,4 @@ function setGain_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
+
