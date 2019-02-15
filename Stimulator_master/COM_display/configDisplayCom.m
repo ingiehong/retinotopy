@@ -3,6 +3,7 @@ function configDisplayCom
 % Revision 10/1/2018 G. Hwang
 % Added option to automatically detect IP address 
 
+disp('Setting up IDP communication with slave computer...')
 global DcomState Mstate
 
 %Modification of MP285Config, for configuration of udp port connection to visual stimulus PC (pep) 	
@@ -21,7 +22,7 @@ global DcomState Mstate
 % ipAddress = char(h.getHostAddress().toString());
 % Mstate.stimulusIDP = ipAddress;
 
-Mstate.stimulusIDP = '10.194.190.56'; % IP address of slave computer
+%Mstate.stimulusIDP = 'XX.XX.XX.XX'; % IP address of slave computer, preset
 port = instrfindall('RemoteHost',Mstate.stimulusIDP); 
 
 if length(port) > 0; 
@@ -32,7 +33,6 @@ end
 
 % make udp object named 'stim'
 DcomState.serialPortHandle = udp(Mstate.stimulusIDP,'RemotePort',8866,'LocalPort',8844);
-%DcomState.serialPortHandle = udp('192.168.0.104','RemotePort',8866,'LocalPort',8844);
 
 set(DcomState.serialPortHandle, 'OutputBufferSize', 1024)
 set(DcomState.serialPortHandle, 'InputBufferSize', 1024)
