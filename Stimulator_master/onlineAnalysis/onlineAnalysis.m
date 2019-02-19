@@ -6,9 +6,7 @@ if get(GUIhandles.main.analysisFlag,'value')
     
     disp(['Starting online phase analysis...'])
     Grabtimes = syncInfo.acqSyncs;
-    %Stimulus starts on 2nd sync, and ends on the second to last.  I also
-    %get rid of the last bar rotation (dispSyncs(end-1)) in case it is not an integer multiple
-    %of the stimulus trial length
+    %Stimulus starts on 2nd sync, and ends on the second to last.  
     Disptimes = syncInfo.dispSyncs(2:end-2) 
     
     %T = getparam('t_period')/60;
@@ -22,8 +20,9 @@ if get(GUIhandles.main.analysisFlag,'value')
     k = 1;
     for j=fidx(1):fidx(end)
         
-        img = 4096-double(Tens(:,:,j));
-     
+        img = 2^16-double(Tens(:,:,j)); % Now 16bit rather than 12bit
+%       img = double(Tens(:,:,j)); % Try not inverting
+        
         if j==fidx(1)
             acc = zeros(size(img));
         end
@@ -33,9 +32,10 @@ if get(GUIhandles.main.analysisFlag,'value')
         k = k+1;
 
     end
-    
-    F0 = 4096-double(mean(Tens(:,:,fidx(1):fidx(2)),3));
-    
+ 
+    F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Now 16bit rather than 12bit
+%    F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Try not inverting
+ 
     acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
     acc = 2*acc ./ (k-1);
 
@@ -52,6 +52,7 @@ if get(GUIhandles.main.analysisFlag,'value')
     title([ 'Condition ' num2str(c) ])
     %set(gca,'CLim',pi/180*[-50 50])
     axis image
+    
 end
 
 Tens = Tens*0;

@@ -1,7 +1,9 @@
 function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
 % Imitates the function of onlineAnalysis, on recorded files 
+% Code is currently inverting the sign of visually-induced changes in
+% brightness, to achieve correct phase analysis
 %
-% Example of usage:
+% Example of usage: (please see offlineAnlaysis_script.m)
 % load('180705_u000_000_001.mat')
 % im=squeeze(im);
 % load('180705_u000_000.analyzer', '-mat')
@@ -12,15 +14,15 @@ function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
  
 %if get(GUIhandles.main.analysisFlag,'value')
     
-    disp(['Starting online phase analysis...'])
+    disp(['Starting offline phase analysis...'])
     Grabtimes = syncInfo.acqSyncs;
     %Stimulus starts on 2nd sync, and ends on the second to last.  I also
     %get rid of the last bar rotation (dispSyncs(end-1)) in case it is not an integer multiple
     %of the stimulus trial length
-    Disptimes = syncInfo.dispSyncs(2:end-2) 
+    Disptimes = syncInfo.dispSyncs(2:end-2) ;
     
     %T = getparam('t_period')/60;
-    T = mean(diff(Disptimes)) %This one might be more accurate
+    T = mean(diff(Disptimes)); %This one might be more accurate
     disp(['Detected ' num2str(length(Disptimes)-1) ' trials of visual stimulation. Average length: ' num2str(T) ])
     fidx = find(Grabtimes>Disptimes(1) & Grabtimes<Disptimes(end));  %frames during stimulus
 
@@ -32,8 +34,8 @@ function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     k = 1;
     for j=fidx(1):fidx(end)
         
-        %img = 2^16-double(Tens(:,:,j)); % Now 16bit rather than 12bit
-        img = double(Tens(:,:,j)); % Don't invert for calcium imaging
+        img = 2^16-double(Tens(:,:,j)); % Updated for 16bit rather than 12bit
+        %img = double(Tens(:,:,j)); % Try not inverting
         
         if j==fidx(1)
             acc = zeros(size(img));
@@ -56,18 +58,19 @@ function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     end
     size_vidcell=reshape(cell2mat(cellfun( @size, vidcell, 'UniformOutput',false) ),3,[]);
     
-    avgvideo=uint16(zeros(size_vidcell(1,1), size_vidcell(2,1), min(size_vidcell(3,:))));
-    for i=1:min(size_vidcell(3,:))
-        avgframe = cellfun(@(c) c(:,:,i), vidcell ,'UniformOutput',false );
-        avgframe = reshape(avgframe, 1,1,[]);
-        avgframe = mean(cell2mat(avgframe),3);
-        avgvideo(:,:,i) = avgframe;
+    if ~exist(output_tif_filename, 'file')
+        avgvideo=uint16(zeros(size_vidcell(1,1), size_vidcell(2,1), min(size_vidcell(3,:))));
+        for i=1:min(size_vidcell(3,:))
+            avgframe = cellfun(@(c) c(:,:,i), vidcell ,'UniformOutput',false );
+            avgframe = reshape(avgframe, 1,1,[]);
+            avgframe = mean(cell2mat(avgframe),3);
+            avgvideo(:,:,i) = avgframe;
+        end
+        save_tif(avgvideo, output_tif_filename)   
     end
-    save_tif(avgvideo, output_tif_filename)   
     
-    
-    %F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Now 16bit rather than 12bit
-    F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Don't invert for calcium imaging
+    F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Updated for 16bit rather than 12bit
+    %F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Try not inverting
     
     acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
     acc = 2*acc ./ (k-1);

@@ -1,5 +1,10 @@
 function generatekret(anim,AzExpt,AltExpt,LP)
-
+% Revision 7-Oct.-2018 by G. Hwang & I. Hong
+% Modified output directory structure 
+% Retinotopic analysis should be run from directory where all files are
+% stored
+% AnalyzerDir = pwd; Processed Dir = pwd; GrabDir = pwd
+%
 %% VARIABLES ------------
 % generatekret('R43','000_005','000_004')
 % anim='R44';
@@ -28,22 +33,25 @@ for x=1:length(LP)
     
     %% HORIZONTAL RETINOTOPY -----------
     Anim=anim;
-    Expt=strcat('u',AzExpt);
+    Expt=strcat('u',AzExpt); %no longer need 'u'
     Expt1=AzExpt;
-    ExptID = strcat(anim,'_',Expt);
+    ExptID = strcat(anim,'_',Expt); %turned Expt to Expt1
     Horiz_ExptID = ExptID;
-    
+ 
     %% GET ANALYZER FILE
-    AnaDir = [AnalyzerDir,'\',ExptID '.analyzer'];
-    load(AnaDir,'Analyzer','-mat')
+    [token azi ] = strtok(AzExpt,'_');
+    AnalyzerID = strcat(anim, '_u000', azi); %work around to get correct analyzer ID
+    AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+    load(AnaDir,'Analyzer','-mat')  
     
     % confirm this is the horiz ret expt
     if strcmp(Analyzer.P.param{12}(3), 'altitude') == 1;
         disp('Experiments entered incorrectly.')
         %pause
     end
-    
+     
     Horiz_Analyzer = Analyzer;
+
     
     %% GET PROCESSED DATA
     filename=strcat(Anim,'_u',Expt1,'.mat');
@@ -59,13 +67,14 @@ for x=1:length(LP)
     end
     
     %% GET ANATOMY IMAGE
-    
+    % The current implementation only works in gCamp imaging mode
     Anatdir=pwd;
     %D = dir([Anatdir filesep '*.mat']);
     %pic=D(001).name;
-    filename=[Anatdir,filesep,ExptID,'_000_grab.mat'];
+    filename=[Anatdir,filesep,ExptID,'_000.mat'];
     image=load(filename);
-    anatomypic_orig=image.grab.img;
+    anatomypic_orig=image(1).im(:,:,1);
+    figure; imagesc(anatomypic_orig)
     
     %%
     if LP(x)==0
@@ -133,7 +142,7 @@ for x=1:length(LP)
     % delay_hor = rot90(delay_hor);
     
     %% threshold by normalized response mag
-    thresh=0.05; % typically range including 0.05, 0.07, 0.1
+    thresh=0.1; % typically range including 0.05, 0.07, 0.1
     for y=1:length(thresh)
         raw_horiz_mag=magS.hor; %mag=response magnitude for each pixel (from processkret)
         mag = raw_horiz_mag.^1.1; % increase difference in values in mag to separate
@@ -287,7 +296,7 @@ if figTag == 1;
     filename8 = strcat(ExptID,'_LP',num2str(LP(x)),'_HorizRet2');
     filename9 = strcat(ExptID,'_LP',num2str(LP(x)),'_HorizAnatomy');
     filename18= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizRet3');
-    filename19= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizMag'); % errored out GMH
+    filename19= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizMag'); 
     filename20= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizAng1');
     filename21= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizAng2');
     filename22= strcat(ExptID,'_LP',num2str(LP(x)),'_HorizDelay');
@@ -378,18 +387,24 @@ end
         
 %%  VERTICAL RETINOTOPY ---------------------------------------------------------
 
-    Expt=strcat('u',AltExpt);
-    Expt1=AltExpt;
+    Expt=strcat('u',AltExpt); 
+    Expt1 = AltExpt; %
     ExptID = strcat(anim,'_',Expt);
     Vert_ExptID=ExptID;
     
-    %% GET ANALYZER
-    AnaDir = [AnalyzerDir,'\',ExptID '.analyzer'];
-    load(AnaDir,'Analyzer','-mat')
+    %% GET ANALYZER % 
+    [token alt ] = strtok(AltExpt,'_');
+    AnalyzerID = strcat(anim, '_u000', alt); %work around to get correct analyzer ID
+    AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+    load(AnaDir,'Analyzer','-mat')  
+   % AnaDir = [AnalyzerDir,'\',ExptID '.analyzer']; %original code is obsolete
+   % load(AnaDir,'Analyzer','-mat') %original code is obsolete
+
     Vert_Analyzer = Analyzer;
-    
+
+
 %% GET PROCESSED DATA
-    filename=strcat(Anim,'_u',Expt1,'.mat');
+    filename=strcat(Anim,'_u',Expt1,'.mat'); 
     filepath=strcat(ProcessedDir,filesep,filename);
     S = load(filepath);  %Returns the contents in the .mat under the structure S
     f1m = S.f1m;    %f1m is a cell array with images from each condition
@@ -626,12 +641,12 @@ if figTag == 1;
     saveas(VertAng2,strcat(AnalDir,filename21,'.fig'))
     saveas(VertDelay,strcat(AnalDir,filename22,'.tif'))
     saveas(VertDelay,strcat(AnalDir,filename22,'.fig'))
-    %saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.tif')) % errored GMH
-    %saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.fig')) % errored GMH
+    %saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.tif')) % errored 
+    %saveas(VertRet_RespMag,strcat(AnalDir,filename25,'.fig')) % errored 
     
 end
 
-%% PLOT INTENSITY FIGURES
+%% PLOT INTENSITY FIGURES %  
 
 if intensityFigTag == 1;
 
@@ -807,7 +822,7 @@ end
         
     end
     
-    %close all
+    close all
 
 %% SAVE VARIABLES
 
@@ -852,7 +867,7 @@ end
             'AnatomyPic',anatomypic,...
             'xsize', xsize,...
             'ysize', ysize);
-        
+  
         AnalDir1 = strcat(SaveDir,'Kmaps/');
         if iscell(AnalDir1)
             AnalDir1=AnalDir1{1};
@@ -865,6 +880,6 @@ end
         
     end
     
-%close all
+close all
 
 end %ends LP loop

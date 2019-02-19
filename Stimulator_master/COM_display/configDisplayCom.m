@@ -1,7 +1,10 @@
 function configDisplayCom
 %%12/15/2017 this version runs!
+% Revision 10/1/2018 G. Hwang
+% Added option to automatically detect IP address 
+
+disp('Setting up IDP communication with slave computer...')
 global DcomState Mstate
-dbstop if error
 
 %Modification of MP285Config, for configuration of udp port connection to visual stimulus PC (pep) 	
 
@@ -12,18 +15,15 @@ dbstop if error
 
 %these lines set up the master instance of MATLAB
 
-%automatically look for ip address in matlab with JAVA code
-%% for autodetection IP on same computer
+%%automatically look for ip address in matlab with JAVA code which is
+%useful if implementing both master and slave one the same computer
+% 
 % h = java.net.InetAddress.getLocalHost();
 % ipAddress = char(h.getHostAddress().toString());
 % Mstate.stimulusIDP = ipAddress;
-Mstate.stimulusIDP = '10.194.213.208';
 
-%Mstate.stimulusIDP = '192.168.159.3';
-% Ingie's desktop IP='10.194.195.180' %GMH in 2017
-
-port = instrfindall('RemoteHost',Mstate.stimulusIDP); %GMH
-%port = instrfindall('RemoteHost','192.168.0.104');
+%Mstate.stimulusIDP = 'XX.XX.XX.XX'; % IP address of slave computer, preset
+port = instrfindall('RemoteHost',Mstate.stimulusIDP); 
 
 if length(port) > 0; 
     fclose(port); 
@@ -33,7 +33,6 @@ end
 
 % make udp object named 'stim'
 DcomState.serialPortHandle = udp(Mstate.stimulusIDP,'RemotePort',8866,'LocalPort',8844);
-%DcomState.serialPortHandle = udp('192.168.0.104','RemotePort',8866,'LocalPort',8844);
 
 set(DcomState.serialPortHandle, 'OutputBufferSize', 1024)
 set(DcomState.serialPortHandle, 'InputBufferSize', 1024)

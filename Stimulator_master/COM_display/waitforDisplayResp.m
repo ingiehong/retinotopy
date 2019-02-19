@@ -1,5 +1,5 @@
 function waitforDisplayResp   
-
+disp('Waiting for response from Slave display computer...')
 global DcomState 
 
 comhandle = DcomState.serialPortHandle;
@@ -22,4 +22,5 @@ n = get(comhandle,'BytesAvailable');
 if n > 0
     fread(comhandle,n); %clear the buffer
 end
+disp('Slave display computer responded.')
 

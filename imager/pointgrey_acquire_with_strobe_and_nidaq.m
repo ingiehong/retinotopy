@@ -27,7 +27,6 @@ daq.getDevices;
   ch_stim.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008 
 %%
 saveFlag=1; %set to 1 to save image files
-%animID='xx0_u000_003'; % must manually update this ID each experiment
 fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
 savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
 if ~exist(savePath)
@@ -59,23 +58,11 @@ src.GammaMode = 'Manual';
 src.SharpnessMode = 'Manual';
 src.ExposureMode = 'Manual';
 
-%vid = videoinput('pointgrey', 1, 'F7_Raw16_1920x1200_Mode7');
-% vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
-% src = getselectedsource(vid);
-% src.ExposureMode = 'Manual';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-% src.FrameRateMode = 'Manual';
-% src.GainMode = 'Manual';
-% src.GammaMode = 'Manual';
-% src.SharpnessMode = 'Manual';
-% src.ShutterMode = 'Manual';
-% src.FrameRate = 10;
-% src.Shutter=30;
-% src.Gain=10;
-
-%if abs(src.Shutter-99.5003) > 1 
-%    error('Wrong framerate or shutter time. Run FlyCapture and set framerate to 10FPS.')
-%end
+if abs(src.Shutter-99.5003) > 1 
+    error('Wrong framerate or shutter time. Run FlyCapture and set framerate to 10FPS.')
+end
 %If frame rate cannot be adjusted using MATLAB, use FlyCapture2 Camera
+
 %Selection tool
 src.Strobe2 = 'Off';
 %triggerconfig(vid, 'hardware', 'risingEdge', 'externalTriggerMode0-Source0');
@@ -111,9 +98,6 @@ closepreview(vid);
 function plotData(src,event)
     global fileID savePath s
      %plot(event.TimeStamps, event.Data)
-     %s.Rate=5000; %redundant - why can't I get this to be a global variable or pass into function
-     %fileID='test_u004_008'; %redundant - why can't I get this to be a global variable or pass into function
-     %savePath='C:\Users\Huganir lab\Documents\imager_data\TEST_04272018\'; %redundant
     timestamps=event.TimeStamps;
     data=event.Data;
     figure; plot(timestamps,data);
@@ -155,11 +139,4 @@ end
 %    stoppreview(vid);
 %    closepreview(vid);
 
-
-
-
-%Start acq
-  
-%data = startForeground(s);
-%[data,timestamps] = startForeground(s);
 

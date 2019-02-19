@@ -1,6 +1,11 @@
 function configSyncInput
+%Revision 1-Oct.-2018 G. Hwang & I. Hong
+%Added code to automatically detect camera probe pulse and photodiode
+%stimulus pulse from analog channels on a NIDAQ
+%Settings in this function were custom selected based on specification of
+%NI USB-6008
 
-global analogIN
+global analogIN Mstate
 
 % analogIN = analoginput('nidaq','Dev1');
 % set(analogIN, 'SampleRate', 10000);
@@ -10,15 +15,15 @@ global analogIN
 
 daq.getDevices;
 analogIN =daq.createSession('ni');
-analogIN.Rate=5000;
-analogIN.DurationInSeconds = 10; %str2num(get(findobj('Tag','timetxt'),'String'));  %  use 20 for debugging and 200 for ISI. Allow extra 15 second when doing data collect
+analogIN.Rate=5000; 
+analogIN.DurationInSeconds = 10; %str2num(get(findobj('Tag','timetxt'),'String'));  
 
-ch_camera = addAnalogInputChannel(analogIN,'dev1', 'ai0', 'Voltage'); %camera pulse set up
+ch_camera = addAnalogInputChannel(analogIN, Mstate.DAQdevice, Mstate.analogIN_camera_strobe_channel, 'Voltage');  % camera strobe signal channel  set up
+ch_camera.Range = [-10, 10]; % Adjust according to DAQ employed
 ch_camera.TerminalConfig = 'SingleEnded'; 
-ch_camera.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008 
-ch_stim = addAnalogInputChannel(analogIN,'dev1','ai1', 'Voltage');     %Photodiode set up
+ch_stim = addAnalogInputChannel(analogIN, Mstate.DAQdevice, Mstate.analogIN_photodiode_channel, 'Voltage');     % Photodiode channel set up
+ch_stim.Range = [-10, 10]; %  Adjust according to DAQ employed
 ch_stim.TerminalConfig = 'SingleEnded';
-ch_stim.Range = [-10, 10]; % Changed to -10 to 10 due to error on NI USB-6008 
 
 analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(analogIN.DurationInSeconds) ; %50000;
 

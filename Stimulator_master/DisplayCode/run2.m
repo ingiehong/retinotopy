@@ -1,8 +1,11 @@
 function run2
 %% Acquires video and analog data in a loop 
+%Revision 3-Oct-2018. G Hwang and I. Hong
+%Added function plotdata that creates syncInfo.acqSyncs and syncInfo.dispSyncs
+%both of which are mandatory for the *.analyzer file
 
 global GUIhandles Pstate Mstate trialno syncInfo analogIN lh
-disp('run2 starting')
+disp('AcquisitionLoop(run2) starting')
 if Mstate.running %otherwise 'getnotrials' won't be defined for play sample
     nt = getnotrials;
 end
@@ -22,7 +25,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     waitforDisplayResp   %Wait for serial port to respond from display
 
     if ISIbit
-        %start(analogIN)  %Start sampling acquistion and stimulus syncs GMH commented out
+        %start(analogIN)  %Start sampling acquistion and stimulus syncs 
         lh = addlistener(analogIN,'DataAvailable',@plotData); 
         disp('Photodiode/Frame strobe acquisition started!')
         startBackground(analogIN);
@@ -54,7 +57,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
         %%%Timing is not crucial for this last portion of the loop (both display and frame grabber/saving is inactive)...
 
         delete(lh) % Added to remove listener 
-        stop(analogIN)  %Stop sampling acquistion and stimulus syncs  %GMH
+        stop(analogIN)  %Stop sampling acquistion and stimulus syncs  % 
         
         %[syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] = getSyncTimes;   
         %syncInfo.dSyncswave = [];  %Just empty it for now
@@ -82,7 +85,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     
     %This would otherwise get called by Displaycb 
     if ISIbit
-        disp('run2 looping')
+        disp('AcquisitionLoop(run2) recursively looping')
         run2  %Nothing should happen after this
     end
         
@@ -107,27 +110,24 @@ else
     end
 
 end
-disp('run2 done')
+disp('AcquisitionLoop(run2) done')
 
 
 
 %% run2.m and getsync
 function plotData(src,event)
-    disp('Starting daq listner...')
-    %global fileID savePath analogIN
-    
+    disp('Starting daq listner...')    
     savePath = parseString(Mstate.analyzerRoot,';');    
     savePath=savePath{1};
     fname = [Mstate.anim '_' sprintf('u%s',Mstate.unit) '_' Mstate.expt '_' sprintf('%03d',trialno-1)];
     fileID = [savePath '\' Mstate.anim '\' fname ];
-
     % fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
-    % savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
     if ~exist(savePath)
         mkdir(savePath)
     end
     timestamps=event.TimeStamps;
     data=event.Data;
+    % Following lines of code are good for debugging uses
     % figure; plot(timestamps,data);
     % xlabel('Time (seconds)');
     % ylabel('voltage (volts)');
@@ -135,9 +135,9 @@ function plotData(src,event)
     % title('Raw data from photodiode and camera');
     cameraPulseInd=find(diff(data(:,1)>1)==1);
     acqSyncTimes=cameraPulseInd/analogIN.Rate; % this will end up being syncInfo.acqSyncs
-    disp(['Analyzing ' num2str(size(acqSyncTimes)) ' seconds of analog data...'])
+    disp(['Analyzing ' num2str(size(acqSyncTimes,1)) ' seconds of analog data...'])
     % convert photodiode pulse into start time
-    temp1=sgolayfilt(data(:,2),27,51);%27,51); 15,27
+    temp1=sgolayfilt(data(:,2),27,51); 
     temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
     PDchan=find(diff(temp2>1.5)==1);   
     dispSyncTimes=PDchan/analogIN.Rate  %this will become syncInfo.dispSyncs
@@ -153,18 +153,19 @@ function plotData(src,event)
         syncInfo=setfield(syncInfo, 'dispSyncs', dispSyncTimes);
         syncInfo=setfield(syncInfo, 'acqSyncs', acqSyncTimes);
         
-    % Check for extra flashes in photodiode pulses
-    while abs(syncInfo.dispSyncs(2) - syncInfo.dispSyncs(1)-2) >0.1
-        disp('Erroneous first photodiode flash found.. deleting.')
-        syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
-    end
-    
+    %% Check for extra flashes in photodiode pulses - this was an interim measure useful for debugging photodiode
+    %     while abs(syncInfo.dispSyncs(2) - syncInfo.dispSyncs(1)-2) >0.1
+    %         disp('Erroneous first photodiode flash found.. deleting.')
+    %         syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
+    %     end
+    %%    
     diff(syncInfo.dispSyncs)
     saveSyncInfo(syncInfo)  %append .analyzer file
     onlineAnalysis(c,r,syncInfo)     %Compute F1
         
+    %Good debug statements
     %save([ fileID '_syncInfo'], 'syncInfo' );
-	%disp(['saving ...' fileID '_syncInfo'])
+    %disp(['saving ...' fileID '_syncInfo'])
 end
 
 

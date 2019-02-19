@@ -23,6 +23,9 @@ function varargout = MainWindow(varargin)
 % Edit the above text to modify the response to help MainWindow
 
 % Last Modified by GUIDE v2.5 22-Dec-2017 13:04:49
+% Revision 1-Oct-2018. G. Hwang & I. Hong. Removed some outdated comments.
+% Added a +1 to variable newexpt to allow experiment number to increment automatically.
+
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -165,7 +168,8 @@ global Mstate
 
 %This is not actually necessary since updateMstate is always called prior
 %to showing stimuli...
-Mstate.hemi = get(handles.hemisphere,'string');
+Mstate.stimulusIDP = get(handles.stimulusIDP,'string');
+configDisplayCom
 
 % --- Executes during object creation, after setting all properties.
 function hemisphere_CreateFcn(hObject, eventdata, handles)
@@ -293,22 +297,7 @@ if ~Mstate.running
     %after each trial... 
     %In 'endAcquisition' (2ph), below (intrinsic), or 'Displaycb' (no acquisition)
     run2  
-    
-    %%%%What the hell was I doing here before?
-%     while trialno<=getnotrials
-%         run2
-%     end
-%     Mstate.running = 0;
-%     set(GUIhandles.main.runbutton,'string','Run')
-%     
-%     if get(GUIhandles.main.intrinsicflag,'value')        
-%         %set(GUIhandles.param.playSample,'enable','off')
-%         saveOnlineAnalysis
-%     end
-    
-    %We don't want anything significant to happen after 'run2', so that
-    %scanimage will be ready to accept TTL
-    
+            
 else
     Mstate.running = 0;  %Global flag for interrupt in real-time loop ('Abort')    
     set(handles.runbutton,'string','Run')    
