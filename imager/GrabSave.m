@@ -22,8 +22,12 @@ src.Strobe2 = 'Off';
 %pause(1) % delay for analog data acquisition to finish.
 im = squeeze(getdata(vid));
 Tens = im;
+tic
 save([ fname '.mat'], 'im');
-
+toc
+tic
+save_tif(im, [ fname '.tif'])
+toc
 %Creating grab file
 tmp=Tens(:,:,10);
 grab.img = tmp; %tmp is grab from collect

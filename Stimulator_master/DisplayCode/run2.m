@@ -1,5 +1,5 @@
 function run2
-%% Acquires video and analog data in a loop 
+%% Acquires video and analog data in a loop (per settings in Looper) 
 %Revision 3-Oct-2018. G Hwang and I. Hong
 %Added function plotdata that creates syncInfo.acqSyncs and syncInfo.dispSyncs
 %both of which are mandatory for the *.analyzer file
@@ -24,7 +24,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     buildStimulus(c,trialno)    %Tell stimulus to buffer the images (also controls shutter)
     waitforDisplayResp   %Wait for serial port to respond from display
 
-    if ISIbit
+    if ISIbit && ~isempty(analogIN) 
         %start(analogIN)  %Start sampling acquistion and stimulus syncs 
         lh = addlistener(analogIN,'DataAvailable',@plotData); 
         disp('Photodiode/Frame strobe acquisition started!')
@@ -55,10 +55,10 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
         sendtoImager(sprintf(['S %d' 13],trialno-1))  %Matlab now enters the frame grabbing loop (I will also save it to disk)
         
         %%%Timing is not crucial for this last portion of the loop (both display and frame grabber/saving is inactive)...
-
-        delete(lh) % Added to remove listener 
-        stop(analogIN)  %Stop sampling acquistion and stimulus syncs  % 
-        
+        if ~isempty(analogIN) 
+            delete(lh) % Added to remove listener 
+            stop(analogIN)  %Stop sampling acquistion and stimulus syncs  % 
+        end
         %[syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] = getSyncTimes;   
         %syncInfo.dSyncswave = [];  %Just empty it for now
         %saveSyncInfo(syncInfo)  %append .analyzer file

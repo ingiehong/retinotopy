@@ -280,9 +280,14 @@ global vid src
 vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
 src = getselectedsource(vid);
 
-src.FrameRate = FPS;
-if src.FrameRate ~= FPS
-    error('Framerate could not be set to proper value. Please restart Matlab and try again.')
+if isprop(src,'FrameRate')
+    src.FrameRate = FPS;
+    if src.FrameRate ~= FPS
+        error('Framerate could not be set to proper value. Please restart Matlab and try again.')
+    end
+elseif isprop(src,'FrameRatePercentage')
+    src.FrameRatePercentage = 100;
+    disp('FrameRatePercentage was set to 100% but FrameRate could not set directly. Please verify that the frame rate of acquisition is 30hz or the rate requested.')
 end
 srcinfo=propinfo(src,'Shutter');
 if srcinfo.ConstraintValue(2)<30
@@ -292,11 +297,13 @@ src.ShutterMode = 'Manual';
 src.Shutter=30;
 src.Gain=0;
 src.GammaMode = 'Manual';
-src.SharpnessMode = 'Manual';
+if isprop(src,'SharpnessMode')
+    src.SharpnessMode = 'Manual';
+end
 src.ExposureMode = 'Manual';
 src.Strobe2 = 'Off';
 triggerconfig(vid, 'manual')
-vid.FramesPerTrigger = (str2num(get(findobj('Tag','timetxt'),'String')))*src.FrameRate ;
+vid.FramesPerTrigger = (str2num(get(findobj('Tag','timetxt'),'String')))*src.Shutter ;
 
 %% Open image in existing window
 
@@ -1212,7 +1219,11 @@ val = round(get(hObject,'Value'));
 
 
 global analogOUT
-outputSingleScan(analogOUT,val*5/256); %changes LED intensity
+if ~isempty(analogOUT)
+    outputSingleScan(analogOUT,val*5/256); %changes LED intensity
+else
+    disp('No NI-DAQ available for LED control. ')
+end
 handles.setlightpower.String = num2str(val);
 
 
@@ -1235,7 +1246,11 @@ configAnalogOutput % Setup Analog output channel to control LED
 global analogOUT
 handles.setlight.Enable='off';
 handles.setlightpower.Enable='off';
-outputSingleScan(analogOUT,0); %changes LED intensity
+if ~isempty(analogOUT)
+    outputSingleScan(analogOUT,0); %changes LED intensity
+else
+    disp('No NI-DAQ available for LED control. ')
+end
 
 % --- Executes on button press in itpower.
 function itpower_Callback(hObject, eventdata, handles)
@@ -1251,11 +1266,20 @@ global analogOUT
 if val==1 
     handles.setlight.Enable='on';
     handles.setlightpower.Enable='on';
-    outputSingleScan(analogOUT,handles.setlight.Value*5/256); %changes LED intensity
+    if ~isempty(analogOUT)
+        outputSingleScan(analogOUT,handles.setlight.Value*5/256); %changes LED intensity
+    else
+        disp('No NI-DAQ available for LED control. ')
+    end
 else
     handles.setlight.Enable='off';
     handles.setlightpower.Enable='off';
-    outputSingleScan(analogOUT,0); %changes LED intensity
+    if ~isempty(analogOUT)
+        outputSingleScan(analogOUT,0); %changes LED intensity
+    else
+        disp('No NI-DAQ available for LED control. ')
+    end
+
 end
 
 
