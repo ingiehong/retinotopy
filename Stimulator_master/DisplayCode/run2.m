@@ -133,9 +133,9 @@ function plotData(src,event)
     % ylabel('voltage (volts)');
     % legend('camera','photodiode');
     % title('Raw data from photodiode and camera');
-    cameraPulseInd=find(diff(data(:,1)>1)==1);
+    cameraPulseInd=find(diff(data(:,1)>1)==1); % detect upshifts in camera strobe channel
     acqSyncTimes=cameraPulseInd/analogIN.Rate; % this will end up being syncInfo.acqSyncs
-    disp(['Analyzing ' num2str(size(acqSyncTimes,1)) ' seconds of analog data...'])
+    disp(['Analyzing ' num2str(size(data,1)/analogIN.Rate) ' seconds of analog data...'])
     % convert photodiode pulse into start time
     temp1=sgolayfilt(data(:,2),27,51); 
     temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
@@ -146,7 +146,7 @@ function plotData(src,event)
     plot(timestamps(1:end), temp2>1, 'r')
     legend('camera','photodiode');
     xlabel('Time (seconds)');
-    ylabel('voltage (volts)');
+    ylabel('Processed signal (off/on)');
     title('Processed data from photodiode and camera');
     % create structure syncInfo
     syncInfo={};
@@ -159,7 +159,8 @@ function plotData(src,event)
     %         syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
     %     end
     %%    
-    diff(syncInfo.dispSyncs)
+    disp(['Time intervals between dispSyncTimes:'])
+    disp(diff(syncInfo.dispSyncs))
     saveSyncInfo(syncInfo)  %append .analyzer file
     onlineAnalysis(c,r,syncInfo)     %Compute F1
         
