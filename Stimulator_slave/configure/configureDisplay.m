@@ -1,8 +1,6 @@
 function configureDisplay(varargin)
-
-close all
-
-%clear all;
+% Revision 1-Oct.-2018 G. Hwang & I. Hong
+% configShutter is no longer needed
 
 Priority(2);  %Make sure priority is set to "real-time"  2 is realtime
 

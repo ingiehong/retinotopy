@@ -16,14 +16,18 @@ disp('Video acquisition triggered!')
 
 %% Stop acquisition
 pause(total_time+0.1) %this specifies how long camera will stay in strobe2=on mode
-%above line should be +2 to enable saving
+%above line should delay more than total_time to enable saving
 stop(vid)
 src.Strobe2 = 'Off';
 %pause(1) % delay for analog data acquisition to finish.
 im = squeeze(getdata(vid));
 Tens = im;
+tic
 save([ fname '.mat'], 'im');
-
+toc
+tic
+save_tif(im, [ fname '.tif'])
+toc
 %Creating grab file
 tmp=Tens(:,:,10);
 grab.img = tmp; %tmp is grab from collect

@@ -1,5 +1,5 @@
 function run2
-%% Acquires video and analog data in a loop 
+%% Acquires video and analog data in a loop (per settings in Looper) 
 %Revision 3-Oct-2018. G Hwang and I. Hong
 %Added function plotdata that creates syncInfo.acqSyncs and syncInfo.dispSyncs
 %both of which are mandatory for the *.analyzer file
@@ -24,7 +24,7 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
     buildStimulus(c,trialno)    %Tell stimulus to buffer the images (also controls shutter)
     waitforDisplayResp   %Wait for serial port to respond from display
 
-    if ISIbit
+    if ISIbit && ~isempty(analogIN) 
         %start(analogIN)  %Start sampling acquistion and stimulus syncs 
         lh = addlistener(analogIN,'DataAvailable',@plotData); 
         disp('Photodiode/Frame strobe acquisition started!')
@@ -55,10 +55,10 @@ if Mstate.running && trialno<=nt  %'trialno<nt' may be redundant.
         sendtoImager(sprintf(['S %d' 13],trialno-1))  %Matlab now enters the frame grabbing loop (I will also save it to disk)
         
         %%%Timing is not crucial for this last portion of the loop (both display and frame grabber/saving is inactive)...
-
-        delete(lh) % Added to remove listener 
-        stop(analogIN)  %Stop sampling acquistion and stimulus syncs  % 
-        
+        if ~isempty(analogIN) 
+            delete(lh) % Added to remove listener 
+            stop(analogIN)  %Stop sampling acquistion and stimulus syncs  % 
+        end
         %[syncInfo.dispSyncs syncInfo.acqSyncs syncInfo.dSyncswave] = getSyncTimes;   
         %syncInfo.dSyncswave = [];  %Just empty it for now
         %saveSyncInfo(syncInfo)  %append .analyzer file
@@ -133,9 +133,9 @@ function plotData(src,event)
     % ylabel('voltage (volts)');
     % legend('camera','photodiode');
     % title('Raw data from photodiode and camera');
-    cameraPulseInd=find(diff(data(:,1)>1)==1);
+    cameraPulseInd=find(diff(data(:,1)>1)==1); % detect upshifts in camera strobe channel
     acqSyncTimes=cameraPulseInd/analogIN.Rate; % this will end up being syncInfo.acqSyncs
-    disp(['Analyzing ' num2str(size(acqSyncTimes,1)) ' seconds of analog data...'])
+    disp(['Analyzing ' num2str(size(data,1)/analogIN.Rate) ' seconds of analog data...'])
     % convert photodiode pulse into start time
     temp1=sgolayfilt(data(:,2),27,51); 
     temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
@@ -146,7 +146,7 @@ function plotData(src,event)
     plot(timestamps(1:end), temp2>1, 'r')
     legend('camera','photodiode');
     xlabel('Time (seconds)');
-    ylabel('voltage (volts)');
+    ylabel('Processed signal (off/on)');
     title('Processed data from photodiode and camera');
     % create structure syncInfo
     syncInfo={};
@@ -159,7 +159,8 @@ function plotData(src,event)
     %         syncInfo.dispSyncs=syncInfo.dispSyncs(2:end);       
     %     end
     %%    
-    diff(syncInfo.dispSyncs)
+    disp(['Time intervals between dispSyncTimes:'])
+    disp(diff(syncInfo.dispSyncs))
     saveSyncInfo(syncInfo)  %append .analyzer file
     onlineAnalysis(c,r,syncInfo)     %Compute F1
         

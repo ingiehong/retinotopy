@@ -32,8 +32,14 @@ switch(cmd(1))
         global vid FPS analogIN
         total_time=str2num(total_time);
         vid.FramesPerTrigger = (total_time)*FPS ;        
-        analogIN.DurationInSeconds = total_time + 1; % Add 1 second to record all analog activity
-        analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(analogIN.DurationInSeconds) ;
+        if ~isempty(analogIN)
+            analogIN.DurationInSeconds = total_time + 1; % Add 1 second to record all analog activity
+            analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(analogIN.DurationInSeconds) ;
+            %Make sure analog in is not running
+            stop(analogIN)
+        else
+            disp('No DAQ boards present, imaging without synchronization...')
+        end
         
     case 'S'  %% start sampling...
         
