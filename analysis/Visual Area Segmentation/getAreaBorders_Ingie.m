@@ -1,4 +1,9 @@
 function getAreaBorders_Ingie(anim,alt_expt,azi_expt)
+% Revision 7-Oct.-2018 by G. Hwang & I. Hong
+% Adjusted pixels per mm to reflect current setup of 96.8 mm/pixel
+% Automatically creates PowerPoint files of figures created. This feature
+% requires pre-install of exportToPPTX-master
+
 
 %% INPUTS
 %kmap_hor - Map of horizontal retinotopic location
@@ -7,7 +12,7 @@ function getAreaBorders_Ingie(anim,alt_expt,azi_expt)
 % getAreaBorders_Ingie('180817','000_002', '000_003')
 %% Set Save Directory & Low Pass Values
 
-LP = [.9]%[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
+LP = [1.5]%[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
 
 [token azi ] = strtok(azi_expt,'_');
 [token alt ] = strtok(alt_expt,'_');
@@ -28,9 +33,9 @@ for iLP = 1:dimLP(2);
     load(kmapfilename)
     kmap_hor_orig= -(kret.kmap_hor); % negative to correct values 
     kmap_vert_orig=kret.kmap_vert;
-%    keyboard
+
     %% Rotate & Up/Down Sample Maps
-    % The images in Garrett et al '14 were collected at 39 pixels/mm.  It is
+    % obsolete comments: The images in Garrett et al '14 were collected at 39 pixels/mm.  It is
     % recommended that kmap_hor and kmap_vert be down/upsampled to this value
     % before running. The code below downsamples by 2 to achieve 39 pixels/mm
   
@@ -48,10 +53,9 @@ for iLP = 1:dimLP(2);
 
     kmap_hor = kmap_hor_orig; %Ingie added
     kmap_vert = kmap_vert_orig; % Ingie added
-%    pixpermm = 96.8; % Ingie changed this for current setting on 7/6
-    pixpermm = 96.8; %/2; % GMH added  39 was in original code
-    
-%    keyboard
+
+    pixpermm = 96.8; %/2; % 39 was in original code
+
     %% Compute visual field sign map
     
     mmperpix = 1/pixpermm;
@@ -80,12 +84,12 @@ for iLP = 1:dimLP(2);
     figure(10), clf
     set(10,'Position',[0,0,screenDim(3),screenDim(4)])
     subplot(3,4,1)
-    imagesc(xdom,ydom,kmap_hor,[-50 50]), %GMH azimuth example
+    imagesc(xdom,ydom,kmap_hor,[-50 50]), %azimuth example
     axis image, colorbar
     title('1. Horizontal (azim deg)')
     
     subplot(3,4,2)
-    imagesc(xdom,ydom,kmap_vert,[-50 50]), %GMH altitude example
+    imagesc(xdom,ydom,kmap_vert,[-50 50]), %altitude example
     axis image, colorbar
     title('2. Vertical (alt deg)')
     
@@ -130,7 +134,7 @@ for iLP = 1:dimLP(2);
     title('watershed')
     colorbar off
     title('6. "Open" & set boundary')
-    %keyboard % this is where visual field sign is plotted
+    % This is where visual field sign is plotted
     %% Make boundary of visual cortex
     
     %First pad the image with zeros because the "imclose" function does this
@@ -333,9 +337,8 @@ for iLP = 1:dimLP(2);
     % blood vessel picture
     subplot(1,3,1);
 %    anatomypic = rot90(rot90(rot90(kret.AnatomyPic))); %removed one rot90()
-%    anatomypic = fliplr(kret.AnatomyPic); % GMH applied one fliplr instead of three or four rot90's
     anatomypic = kret.AnatomyPic;
-    imagesc(xdom,ydom,anatomypic) %GMH anatomy image
+    imagesc(xdom,ydom,anatomypic) 
     colormap gray
     hold on
     title(strcat('Anatomy'),'FontSize',12,'Interpreter','none');
@@ -408,5 +411,5 @@ for iLP = 1:dimLP(2);
     saveas(gcf,overlaysFig,'tif');
     
     exportFigsToPPTX([ExptID '_' 'LP' num2str(LP(iLP))] )
-    %close all
+    close all
 end

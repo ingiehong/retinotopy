@@ -9,13 +9,11 @@ global comState
 if ~isempty(varargin{1})
     rip = varargin{1}{1}
 else
-    % For self-IP
-%     h = java.net.InetAddress.getLocalHost();
-%     ipAddress = char(h.getHostAddress().toString());
-%     rip = ipAddress; 
+%   For self-IP
+%   h = java.net.InetAddress.getLocalHost();
+%   ipAddress = char(h.getHostAddress().toString());
+%   rip = ipAddress; 
     rip = '10.16.82.154';
-    % rip = '10.1.38.88';  %2ph master 
-    % rip = '10.194.195.180'; %Ingie's lab IP address
 end
 
 % close all open serial port objects on the same port and remove
@@ -51,7 +49,7 @@ stat=get(comState.serialPortHandle, 'Status');
 if ~strcmp(stat, 'open')
     disp([' StimConfig: trouble opening port; cannot proceed']);
     comState.serialPortHandle=[];
-    out=2; % GMH 
+    out=2; %
     return;
 end
 

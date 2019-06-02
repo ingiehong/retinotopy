@@ -1,4 +1,6 @@
 function sendtoImager(cmd)
+% Revision 1-Oct. 2018 G. Hwang
+% Commented out code exclusive to obsolete frame grabber
 
 global imagerhandles h;
 
@@ -30,8 +32,14 @@ switch(cmd(1))
         global vid FPS analogIN
         total_time=str2num(total_time);
         vid.FramesPerTrigger = (total_time)*FPS ;        
-        analogIN.DurationInSeconds = total_time + 1; % Add 1 second to record all analog activity
-        analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(analogIN.DurationInSeconds) ;
+        if ~isempty(analogIN)
+            analogIN.DurationInSeconds = total_time + 1; % Add 1 second to record all analog activity
+            analogIN.NotifyWhenDataAvailableExceeds = analogIN.Rate*(analogIN.DurationInSeconds) ;
+            %Make sure analog in is not running
+            stop(analogIN)
+        else
+            disp('No DAQ boards present, imaging without synchronization...')
+        end
         
     case 'S'  %% start sampling...
         
@@ -62,10 +70,9 @@ switch(cmd(1))
 %        set(1,'Name','imager :: Sampling ::');
 %        drawnow;
         %h.mildig.Image = h.buf{1};
-
-
-        %h = GrabSaveLoop(h,fname,parport); %GMH
-        GrabSave(fname); %GMH
+        %h = GrabSaveLoop(h,fname,parport); %
+        
+        GrabSave(fname); %
         set(1,'Name','imager');
         drawnow;
 

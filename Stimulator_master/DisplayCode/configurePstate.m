@@ -1,4 +1,5 @@
 function configurePstate(modID)
+disp('Loading P(arameter)state parameters...')
 
 switch modID
     case 'PG'

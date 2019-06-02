@@ -15,4 +15,4 @@ Mstate.monitor = 'LIN';  %This should match the default at the master. Otherwise
 
 Mstate.running = 0;
 
-Mstate.syncSize = 2;  %cm GMH should be cm, denotes photodiode placement
+Mstate.syncSize = 2;  %cm denotes size of photodiode placement on stimulus monitor

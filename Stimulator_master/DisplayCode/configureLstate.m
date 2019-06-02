@@ -1,4 +1,5 @@
 function configureLstate
+disp('Loading L(oop)state parameters...')
 
 global Lstate
 

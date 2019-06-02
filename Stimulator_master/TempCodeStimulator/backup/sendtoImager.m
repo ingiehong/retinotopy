@@ -1,5 +1,5 @@
 function sendtoImager(cmd)
-dbstop if error
+
 global imagerhandles h;
 
 switch(cmd(1))

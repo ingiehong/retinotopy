@@ -26,8 +26,7 @@ if get(GUIhandles.main.analysisFlag,'value')
 %     E = get(GUIhandles.main.exptcb,'string');
 % %    E= '001';
 %     UE = [U '_' E];
-% %    path = 'C:\neurodata\Processed Data\';
-%     path='C:\Users\Ingie\Documents\ISI_Data\ProcessedData\';
+%     path = 'C:\Processed Data\';
 %     filename = strcat(path,A,'_',UE);
 %     %save(filename,'F1')
 %     uisave('f1m',filename)
