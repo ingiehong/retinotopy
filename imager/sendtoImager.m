@@ -58,8 +58,7 @@ switch(cmd(1))
         %dd = [datadir '\' lower(animal) '\' animal '_u' unit '_' expt];
         dd = [datadir '\' lower(animal) ];
           
-        fname = sprintf('%s\\%s_u%s_%s',dd,animal,unit,expt);
-        fname = [fname  '_' sprintf('%03d',trial)];
+        fname = sprintf('%s\\%s_u%s_%s_%03d',dd,animal,unit,expt,trial);
 
         nframes = 1;
 

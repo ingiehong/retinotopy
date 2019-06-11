@@ -805,6 +805,8 @@ function unittxt_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+global Mstate
+hObject.set('String', Mstate.unit )
 if ispc
     set(hObject,'BackgroundColor','white');
 else
@@ -871,6 +873,8 @@ function expttxt_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+global Mstate
+hObject.set('String', Mstate.expt )
 if ispc
     set(hObject,'BackgroundColor','white');
 else
@@ -899,7 +903,8 @@ function animaltxt_CreateFcn(hObject, eventdata, handles)
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 
-hObject.set('String', datestr(now, 'yymmdd') )
+global Mstate
+hObject.set('String', Mstate.anim )
 if ispc
     set(hObject,'BackgroundColor','white');
 else
