@@ -1,4 +1,4 @@
-function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
+function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
 % Imitates the function of onlineAnalysis, on recorded files 
 % Code is currently inverting the sign of visually-induced changes in
 % brightness, to achieve correct phase analysis
@@ -58,15 +58,16 @@ function F1 = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     end
     size_vidcell=reshape(cell2mat(cellfun( @size, vidcell, 'UniformOutput',false) ),3,[]);
     
+
+    avgvideo=uint16(zeros(size_vidcell(1,1), size_vidcell(2,1), min(size_vidcell(3,:))));
+    for i=1:min(size_vidcell(3,:))
+        avgframe = cellfun(@(c) c(:,:,i), vidcell ,'UniformOutput',false );
+        avgframe = reshape(avgframe, 1,1,[]);
+        avgframe = mean(cell2mat(avgframe),3);
+        avgvideo(:,:,i) = avgframe;
+    end
     if ~exist(output_tif_filename, 'file')
-        avgvideo=uint16(zeros(size_vidcell(1,1), size_vidcell(2,1), min(size_vidcell(3,:))));
-        for i=1:min(size_vidcell(3,:))
-            avgframe = cellfun(@(c) c(:,:,i), vidcell ,'UniformOutput',false );
-            avgframe = reshape(avgframe, 1,1,[]);
-            avgframe = mean(cell2mat(avgframe),3);
-            avgvideo(:,:,i) = avgframe;
-        end
-        save_tif(avgvideo, output_tif_filename)   
+        saveastiff(avgvideo, output_tif_filename)   
     end
     
     F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Updated for 16bit rather than 12bit

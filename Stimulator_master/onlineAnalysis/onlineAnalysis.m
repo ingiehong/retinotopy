@@ -17,6 +17,8 @@ if get(GUIhandles.main.analysisFlag,'value')
     framest = Grabtimes(fidx)-Disptimes(1);  % frame sampling times in sec
     frameang = framest/T*2*pi;
     
+    vidcell = cell(1,length(Disptimes)-1);
+    l = 1;
     k = 1;
     for j=fidx(1):fidx(end)
         
@@ -29,10 +31,44 @@ if get(GUIhandles.main.analysisFlag,'value')
 
         acc = acc + exp(1i*frameang(k)).*img;
 
+        if framest(k)+Disptimes(1)>Disptimes(l+1)
+            l = l+1;
+        end
+        
+        if isempty(vidcell{l})
+            vidcell{l}(:,:,1) = Tens(:,:,j);
+        else
+            vidcell{l}(:,:,end+1) = Tens(:,:,j);
+        end
+        
         k = k+1;
 
     end
- 
+    
+    size_vidcell=reshape(cell2mat(cellfun( @size, vidcell, 'UniformOutput',false) ),3,[]);
+    
+    avgvideo=uint16(zeros(size_vidcell(1,1), size_vidcell(2,1), min(size_vidcell(3,:))));
+    for i=1:min(size_vidcell(3,:))
+        avgframe = cellfun(@(c) c(:,:,i), vidcell ,'UniformOutput',false );
+        avgframe = reshape(avgframe, 1,1,[]);
+        avgframe = mean(cell2mat(avgframe),3);
+        avgvideo(:,:,i) = avgframe;
+    end
+     
+    animal = get(findobj('Tag','animaltxt'),'String');
+    unit   = get(findobj('Tag','unittxt'),'String');
+    expt   = get(findobj('Tag','expttxt'),'String');
+    datadir= get(findobj('Tag','datatxt'),'String');
+    tag    = get(findobj('Tag','tagtxt'),'String');
+    dd = [datadir '\' lower(animal) ];
+    fname = sprintf('%s\\%s_u%s_%s_%03d_%03d.tif',dd,animal,unit,expt,c,r);
+    if ~exist(fname, 'file')
+        save_tif(avgvideo, fname)   
+        disp(['Saved average tif file as: ' fname])
+    end
+
+
+    
     F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Now 16bit rather than 12bit
 %    F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Try not inverting
  

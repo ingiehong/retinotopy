@@ -1,4 +1,4 @@
-
+%% Script to reanalyze phase from raw retinotopy data and save trial-averaged tif file for visualization
 
 %% Load analyzer
 [ fName, pathname ]= uigetfile('*.analyzer', 'Select an analyzer file', pwd);
@@ -35,9 +35,15 @@ while exist(['syncInfo' num2str(trials+1)], 'var')
     %load('180705_u000_000_001.mat')
     im=squeeze(im);
     if isempty(F1{c})
-        F1{c} = offlineAnalysis(1,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'] );
+        [F1{c}, video] = offlineAnalysis(c,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'] );
     else
-        F1{c} = F1{c}+offlineAnalysis(1,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'] );
+        [tempF1, video] = offlineAnalysis(c,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'] );
+        F1{c} = F1{c} + tempF1;
+    end
+    if ~exist('avgvideo','var') || size(avgvideo,4)<c
+        avgvideo(:,:,:,c) = double(video);
+    else
+        avgvideo(:,:,:,c) = avgvideo(:,:,:,c) + double(video);
     end
     
     % Now update indices
@@ -51,10 +57,19 @@ while exist(['syncInfo' num2str(trials+1)], 'var')
     end
     
 end
-
+avgvideo = avgvideo/repeats;
 if conds*repeats ~= trials 
     error(['The expected number of image data files do not match conditions*repeats. '])
 end
     
 f1m = F1;
 save(F1name,'f1m')
+
+saveastiff(avgvideo(:,:,:,1), [pathname filesep F1name '_1_avg.tif']);
+saveastiff(avgvideo(:,:,:,2), [pathname filesep F1name '_2_avg.tif']);
+
+% saveastiff(avgvideo(:,:,:,1), [pathname filesep F1name '_alt1_avg.tif']);
+% saveastiff(avgvideo(:,:,:,2), [pathname filesep F1name '_alt2_avg.tif']);
+
+% saveastiff(avgvideo(:,:,:,1), [pathname filesep F1name '_azi1_avg.tif']);
+% saveastiff(avgvideo(:,:,:,2), [pathname filesep F1name '_azi2_avg.tif']);
