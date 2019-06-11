@@ -30,20 +30,20 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     frameang = framest/T*2*pi;
     
     vidcell = cell(1,length(Disptimes)-1);
-    l = 1;
-    k = 1;
-    for j=fidx(1):fidx(end)
+    l = 1; % Trial #
+    k = 1; % Frame #
+    for j=fidx(1):fidx(end) % For all frames during stimulus
         
-        img = 2^16-double(Tens(:,:,j)); % Updated for 16bit rather than 12bit
-        %img = double(Tens(:,:,j)); % Try not inverting
+        img = 2^16-double(Tens(:,:,j)); % Now 16bit rather than 12bit
+        %img = double(Tens(:,:,j)); % Don't invert (test)
         
         if j==fidx(1)
-            acc = zeros(size(img));
+            acc = zeros(size(img)); % Empty cache for phase calculation, acc
         end
 
         acc = acc + exp(1i*frameang(k)).*img;
         
-        if framest(k)+Disptimes(1)>Disptimes(l+1)
+        if framest(k)+Disptimes(1)>Disptimes(l+1) % If in next trial,
             l = l+1;
         end
         
@@ -70,8 +70,8 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
         saveastiff(avgvideo, output_tif_filename)   
     end
     
-    F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Updated for 16bit rather than 12bit
-    %F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Try not inverting
+    F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Now 16bit rather than 12bit
+    %F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Don't invert (test)
     
     acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
     acc = 2*acc ./ (k-1);
