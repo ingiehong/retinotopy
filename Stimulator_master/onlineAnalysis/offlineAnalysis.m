@@ -10,6 +10,8 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
 % offlineAnalysis(2,syncInfo1, im)
 %
 % 
+% Ingie Hong, Johns Hopkins Medical Institute, 2018
+ 
 %global Tens looperInfo F1 GUIhandles
  
 %if get(GUIhandles.main.analysisFlag,'value')

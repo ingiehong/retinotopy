@@ -1,11 +1,13 @@
 %% Script to reanalyze phase from raw retinotopy data and save trial-averaged tif file for visualization
+clear all
+close all
 
 %% Load analyzer
 [ fName, pathname ]= uigetfile('*.analyzer', 'Select an analyzer file', pwd);
 if isequal(fName,0)
-   error('User selected Cancel')
+   error('User selected Cancel.')
 else
-   disp(['User selected ', fullfile(pathname, fName)])
+   disp(['User selected: ', fullfile(pathname, fName)])
    load(fullfile(pathname, fName),'-mat');
 end
 [~,F1name,~] = fileparts(fName);
@@ -63,7 +65,7 @@ if conds*repeats ~= trials
 end
     
 f1m = F1;
-save(F1name,'f1m')
+save([F1name '_offline'],'f1m')
 
 saveastiff(avgvideo(:,:,:,1), [pathname filesep F1name '_1_avg.tif']);
 saveastiff(avgvideo(:,:,:,2), [pathname filesep F1name '_2_avg.tif']);
