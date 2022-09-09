@@ -10,6 +10,7 @@ screenNum=0;
 screenRes = Screen('Resolution',screenNum);
 
 screenPTR = Screen('OpenWindow',screenNum);
+%screenPTR = Screen('OpenWindow',screenNum, [], [100 100 1000 1000]); % For stimulation debugging
 
 Screen(screenPTR,'BlendFunction',GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

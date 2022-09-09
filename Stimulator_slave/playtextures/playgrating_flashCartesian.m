@@ -57,14 +57,14 @@ srcrect = [0 0 TDim(1) TDim(2)]';
 Screen(screenPTR, 'FillRect', P.background)
 
 %Wake up the daq:
-DaqDOut(daq, 0, 0); %I do this at the beginning because it improves timing on the first call to daq below
+%DaqDOut(daq, 0, 0); %I do this at the beginning because it improves timing on the first call to daq below
 
 %%%Play predelay %%%%
 Screen('DrawTexture', screenPTR, Stxtr(1),SyncPiece,SyncLoc);
 Screen(screenPTR, 'Flip');
 if loopTrial ~= -1
     digWord = 7;  %Make 1st,2nd,3rd bits high
-    DaqDOut(daq, 0, digWord);
+    %DaqDOut(daq, 0, digWord);
 end
 for i = 2:Npreframes
     Screen('DrawTexture', screenPTR, Stxtr(2),SyncPiece,SyncLoc);
@@ -105,7 +105,7 @@ Screen(screenPTR, 'Flip');
 %DaqDOut(daq, 0,digWord);  
 
 if loopTrial ~= -1
-    DaqDOut(daq, 0, 0);  %Make sure 3rd bit finishes low
+    %DaqDOut(daq, 0, 0);  %Make sure 3rd bit finishes low
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

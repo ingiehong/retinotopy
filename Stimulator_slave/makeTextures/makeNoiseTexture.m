@@ -54,7 +54,7 @@ Hxy(round(yN/2),round(xN/2),:) = 0;
 
 Hxy = fftshift(fftshift(Hxy,1),2);
 
-RandStream.setDefaultStream(RandStream('mt19937ar','seed',P.rseed)); 
+RandStream.setGlobalStream(RandStream('mt19937ar','seed',P.rseed)); 
 
 Im = rand(yN,xN,N_Im,'single');  %Make it single instead of double to save memory
 

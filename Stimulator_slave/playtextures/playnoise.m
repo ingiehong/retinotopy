@@ -7,7 +7,7 @@ global Gtxtr TDim daq  %Created in makeGratingTexture
 global Stxtr %Created in makeSyncTexture
 
 %Wake up the daq:
-DaqDOut(daq, 0, 0); %I do this at the beginning because it improves timing on the call to daq below
+%DaqDOut(daq, 0, 0); %I do this at the beginning because it improves timing on the call to daq below
 
 P = getParamStruct;
 
@@ -58,7 +58,7 @@ Screen('DrawTexture', screenPTR, Stxtr(1),SyncPiece,SyncLoc);
 Screen(screenPTR, 'Flip');
 if loopTrial ~= -1
     digWord = 3;  %Make 1st and 2nd bits high
-    DaqDOut(daq, 0, digWord);
+    %DaqDOut(daq, 0, digWord);
 end
 for i = 2:Npreframes
     Screen('DrawTexture', screenPTR, Stxtr(2),SyncPiece,SyncLoc);
@@ -85,7 +85,7 @@ Screen('DrawTexture', screenPTR, Stxtr(1),SyncPiece,SyncLoc);
 Screen(screenPTR, 'Flip');
 
 if loopTrial ~= -1
-    DaqDOut(daq, 0, 0);  %Make sure 3rd bit finishes low
+    %DaqDOut(daq, 0, 0);  %Make sure 3rd bit finishes low
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

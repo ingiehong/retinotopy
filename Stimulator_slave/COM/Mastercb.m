@@ -97,7 +97,8 @@ try
             updateMonitor
             
         case 'C'  %Close Display
-            Screen('Close')
+            disp('Closing slave display...')
+            %Screen('Close')
             Screen('CloseAll');
             %clear all
             %close all

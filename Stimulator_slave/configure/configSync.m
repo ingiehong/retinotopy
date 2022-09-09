@@ -12,6 +12,7 @@ if ~isempty(daq)
     
 else
     
-    'Daq device does not appear to be connected'
+   disp( 'Daq device does not appear to be connected')
+   disp( 'This version of Stimulator does not use Slave-side signals to synchronize.')
     
 end
