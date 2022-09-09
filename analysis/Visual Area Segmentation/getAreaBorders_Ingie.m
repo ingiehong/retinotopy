@@ -2,8 +2,7 @@ function getAreaBorders_Ingie(anim,alt_expt,azi_expt)
 % Revision 7-Oct.-2018 by G. Hwang & I. Hong
 % Adjusted pixels per mm to reflect current setup of 96.8 mm/pixel
 % Automatically creates PowerPoint files of figures created. This feature
-% requires pre-install of exportToPPTX-master
-
+% requires pre-installation of exportToPPTX
 
 %% INPUTS
 %kmap_hor - Map of horizontal retinotopic location
@@ -12,24 +11,24 @@ function getAreaBorders_Ingie(anim,alt_expt,azi_expt)
 % getAreaBorders_Ingie('180817','000_002', '000_003')
 %% Set Save Directory & Low Pass Values
 
-LP = [1.5]%[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
-
+LP = [2]%[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
+%LP = [.5 .75 1 1.5 2]
 [token azi ] = strtok(azi_expt,'_');
 [token alt ] = strtok(alt_expt,'_');
 ExptID = strcat(anim,azi,alt);
-SaveDir = [pwd filesep ]; % ExptID filesep
+SaveDir = [ pwd filesep ]; % ExptID filesep
 
 %% Generate and load kmaps for vertical and horizontal retinotopy
 
-% if you have kmaps you can skip this step
-generatekret(anim,azi_expt,alt_expt,LP) % this script also generates overlays of azi/alt & blood vessels as well as resp mag maps
+% If you have kmaps you can skip this step
+generatekret(anim,azi_expt,alt_expt,LP) % This script generates overlays of azi/alt & blood vessels as well as resp mag maps
 
 dimLP = size(LP);
 
 for iLP = 1:dimLP(2);
     
     disp(['Starting analysis for LP:' num2str(LP(iLP))]);
-    kmapfilename=strcat(SaveDir,'Kmaps\',anim,'_LP',num2str(LP(iLP)),'_Thresh_0.05_kret.mat')
+    kmapfilename=strcat(SaveDir,'Kmaps\',anim,'_LP',num2str(LP(iLP)),'_Thresh_0.1_kret.mat')
     load(kmapfilename)
     kmap_hor_orig= -(kret.kmap_hor); % negative to correct values 
     kmap_vert_orig=kret.kmap_vert;
@@ -42,10 +41,10 @@ for iLP = 1:dimLP(2);
 %     kmap_hor_orig = rot90(rot90(kmap_hor_orig));
 %     kmap_vert_orig = rot90(rot90(kmap_vert_orig));
 %     
-     kmap_hor = downsample(kmap_hor_orig,2);
+%     kmap_hor = downsample(kmap_hor_orig,2);
 %     kmap_hor = downsample(rot90(kmap_hor),2);
 %     
-     kmap_vert = downsample(kmap_vert_orig,2);
+%     kmap_vert = downsample(kmap_vert_orig,2);
 %     kmap_vert = downsample(rot90(kmap_vert),2);
 %     
 %     kmap_hor_orig = rot90(kmap_hor_orig);
@@ -410,6 +409,6 @@ for iLP = 1:dimLP(2);
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.tif');
     saveas(gcf,overlaysFig,'tif');
     
-    exportFigsToPPTX([ExptID '_' 'LP' num2str(LP(iLP))] )
-    close all
+    %exportFigsToPPTX([ExptID '_' 'LP' num2str(LP(iLP))] )
+    %close all
 end

@@ -37,7 +37,11 @@ lh = addlistener(analogIN,'DataAvailable',@plotData);
 %%
 saveFlag=1; %set to 1 to save image files
 fileID=['' datestr(now, 'yymmdd_HHMMSS') ];
-savePath=['C:\Users\Huganir lab\Documents\imager_data\' datestr(now, 'yymmdd') '\'];
+% Get the name of the user who logged in to the computer.
+userProfile = getenv('USERPROFILE')
+% Create a string to the "My Documents" folder of this Windows user:
+myDocsFolder = sprintf('%s\\My Documents', userProfile)
+savePath=[myDocsFolder '\imager_data\' datestr(now, 'yymmdd') '\'];
 if ~exist(savePath)
     mkdir(savePath)
 end

@@ -1,8 +1,13 @@
 function getAreaBorders(anim,alt_expt,azi_expt)
 % run code from this directory:
-addpath('C:\Users\Huganir lab\Documents\MATLAB\Callaway_ISI\analysis\Visual Area Segmentation')
-addpath('C:\Users\Huganir lab\Documents\MATLAB\Callaway_ISI\analysis\SerenoOverlay')
-addpath('C:\Users\Huganir lab\Documents\MATLAB\Callaway_ISI\analysis\Utilities');
+% Get the name of the user who logged in to the computer.
+userProfile = getenv('USERPROFILE');
+% Create a string to the "My Documents" folder of this Windows user:
+myDocsFolder = sprintf('%s\\My Documents', userProfile);
+
+addpath([myDocsFolder '\MATLAB\Callaway_ISI\analysis\Visual Area Segmentation'])
+addpath([myDocsFolder '\MATLAB\Callaway_ISI\analysis\SerenoOverlay'])
+addpath([myDocsFolder '\MATLAB\Callaway_ISI\analysis\Utilities']);
  anim= 'XX0';  %'T00';
 % alt_expt='000_001';
  azi_expt='000_001';
@@ -13,7 +18,7 @@ addpath('C:\Users\Huganir lab\Documents\MATLAB\Callaway_ISI\analysis\Utilities')
 
 %% Set Save Directory & Low Pass Values
 
-SaveDir = ['C:\Users\Huganir lab\Documents\RetinotopyPipelineData\AnalyzedData\',anim,'\'];
+SaveDir = [myDocsFolder '\RetinotopyPipelineData\AnalyzedData\',anim,'\'];
 LP = [.1]; % 1 to run different low pass values, worth trying anything from 0 to 2
 
 [token azi ] = strtok(azi_expt,'_');

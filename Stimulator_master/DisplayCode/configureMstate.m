@@ -20,9 +20,14 @@ Mstate.syncSize = 51;  %Size of the screen sync in cm
 
 Mstate.running = 0;
 
-Mstate.analyzerRoot = 'C:\Users\Huganir lab\Documents\imager_data'; %This should point to where images will be stored
+% Get the name of the user who logged in to the computer.
+userProfile = getenv('USERPROFILE');
+% Create a string to the "My Documents" folder of this Windows user:
+myDocsFolder = sprintf('%s\\My Documents', userProfile);
 
-Mstate.stimulusIDP = '10.194.190.56'; %This should be set to the slave computer's IP address
+Mstate.analyzerRoot = [myDocsFolder '\imager_data']; %This should point to where images will be stored
+
+Mstate.stimulusIDP = '10.194.185.255'; %This should be set to the slave computer's IP address
 
 Mstate.DAQdevice='dev1';
 Mstate.analogOUT_LED_channel='ao0';

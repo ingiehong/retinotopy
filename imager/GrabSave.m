@@ -25,8 +25,11 @@ Tens = im;
 tic
 save([ fname '.mat'], 'im');
 toc
+% tic
+% save_tif(im, [ fname '.tif'])
+% toc
 tic
-save_tif(im, [ fname '.tif'])
+saveastiff(im, [ fname '.tif'])
 toc
 %Creating grab file
 tmp=Tens(:,:,10);

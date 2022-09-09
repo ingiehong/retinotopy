@@ -5,7 +5,7 @@ function generatekret(anim,AzExpt,AltExpt,LP)
 % stored
 % AnalyzerDir = pwd; Processed Dir = pwd; GrabDir = pwd
 %
-%% VARIABLES ------------
+%% EXAMPLE VARIABLES ------------
 % generatekret('R43','000_005','000_004')
 % anim='R44';
 % AzExpt='000_005';
@@ -142,7 +142,7 @@ for x=1:length(LP)
     % delay_hor = rot90(delay_hor);
     
     %% threshold by normalized response mag
-    thresh=0.1; % typically range including 0.05, 0.07, 0.1
+    thresh=[0.05, 0.07, 0.1]; % typically range including 0.05, 0.07, 0.1
     for y=1:length(thresh)
         raw_horiz_mag=magS.hor; %mag=response magnitude for each pixel (from processkret)
         mag = raw_horiz_mag.^1.1; % increase difference in values in mag to separate
@@ -481,7 +481,7 @@ end
     % delay_vert = rot90(delay_vert);
     
     %% threshold by normalized response mag
-    % thresh=[0.05 0.07 0.1];
+    thresh=[0.05 0.07 0.1];
     for y=1:length(thresh)
         raw_mag = magS.vert; %mag=response magnitude for each pixel (from processkret)
         mag = raw_mag.^1.1; % increase difference in values in mag to separate
@@ -821,7 +821,7 @@ end
         end
         
     end
-    
+    %keyboard
     close all
 
 %% SAVE VARIABLES
