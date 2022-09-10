@@ -2,9 +2,9 @@ Originated by Grace Hwang, 10/1/2018
 
 Make sure that the slave and master computers are both turned on
 
-Run Callaway_ISI\ISI_Master.m from master computer
-run ISI_Slave.m from slave computer
-1) Acq ISI_Master and ISI_Slave
+Run retinotopy\Retinotopy_Master.m from master computer
+run Retinotopy_Slave.m from slave computer
+1) Acq Retinotopy_Master and Retinotopy_Slave
 
 Load altitude param file Callaway_ISI\Stimulator_master\ParamFiles\10cm_gray_nonoverlapping_morenoise
 Load ori_0_180 file
@@ -41,7 +41,7 @@ Move the newly generated phase files (e.g., 180817_u000_001.mat, 180817_u000_000
 go to data diretory (e.g., \Documents\imager_data\180927) 
 Run retinotopic pipeline for a few low pass values
 
-run getAreaBorders_Ingie('180817','000_002', '000_003') %Callaway_ISI\getAreaBorders_Ingie.m
+run getAreaBorders_Ingie('180817','000_002', '000_003') %
 
 % to run different low pass values, worth trying anything from 0 to 2
 Low pass is a spatial kernel - try 1, 1.5 2, empirical determination

@@ -12,7 +12,7 @@ clearvars -global % clear all variables, including hidden globals
 imaqreset % To reset image acquisition toolbox, in case of a camera error
 
 %% Set up the PATH and run Stimulator
-addpath(genpath([fileparts(which('ISI_Master'))]));
+addpath(genpath([fileparts(which('Retinotopy_Master'))]));
 Stimulator
 
 %% Run imager
