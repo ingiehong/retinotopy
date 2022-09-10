@@ -277,7 +277,17 @@ imagerhandles.hwroisize = 128;
 %% Modern MATLAB Image Acquisition Toolbox-based camera acquisition code
 global vid src 
 
-vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
+try
+    vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
+catch ME
+    try 
+        vid = videoinput('pointgrey', 1, 'F7_Mono16_960x600_Mode1');
+    catch
+        disp('Pointgrey/FLIR camera not available or acquisition mode needs to be changed in imager.m>imager_OpeningFcn() ...')
+        rethrow(ME)
+    end
+end
+ 
 src = getselectedsource(vid);
 
 if isprop(src,'FrameRate')
@@ -806,7 +816,9 @@ function unittxt_CreateFcn(hObject, eventdata, handles)
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 global Mstate
-hObject.set('String', Mstate.unit )
+if ~isempty(Mstate)
+    hObject.set('String', Mstate.unit )
+end
 if ispc
     set(hObject,'BackgroundColor','white');
 else
@@ -874,8 +886,10 @@ function expttxt_CreateFcn(hObject, eventdata, handles)
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 global Mstate
-hObject.set('String', Mstate.expt )
-if ispc
+if ~isempty(Mstate)
+    hObject.set('String', Mstate.expt )
+end
+if ispc 
     set(hObject,'BackgroundColor','white');
 else
     set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
@@ -904,7 +918,11 @@ function animaltxt_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 
 global Mstate
-hObject.set('String', Mstate.anim )
+if ~isempty(Mstate)
+    hObject.set('String', Mstate.anim )
+else
+    disp('Stimulator is not detected. Running imager alone...')
+end
 if ispc
     set(hObject,'BackgroundColor','white');
 else
