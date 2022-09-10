@@ -9,6 +9,6 @@
 
 %% Set up the PATH and display settings
 
-addpath(genpath([fileparts(which('ISI_Slave')) filesep 'Stimulator_slave']));
+addpath(genpath([fileparts(which('Retinotopy_Slave')) filesep 'Stimulator_slave']));
 configureDisplay;
 %Screen('Preference', 'SkipSyncTests', 1)

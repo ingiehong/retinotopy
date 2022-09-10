@@ -346,7 +346,7 @@ function loadLooper_Callback(hObject, eventdata, handles)
 
 global Lstate
 
-[file path] = uigetfile('*.loop','Load looper state', [fileparts(which('ISI_Master')) filesep 'Stimulator_master' filesep 'LoopFiles']);
+[file path] = uigetfile('*.loop','Load looper state', [fileparts(which('Retinotopy_Master')) filesep 'Stimulator_master' filesep 'LoopFiles']);
 
 if file  %if 'cancel' was not pressed
     file = [path file];
