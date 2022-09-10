@@ -1,2 +1,0 @@
-[mag,ang] = pepkretinotopy;
-pepplotkretinotopy(mag,ang,2,1)
