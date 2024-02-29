@@ -27,7 +27,7 @@ myDocsFolder = sprintf('%s\\My Documents', userProfile);
 
 Mstate.analyzerRoot = [myDocsFolder '\imager_data']; %This should point to where images will be stored
 
-Mstate.stimulusIDP = '10.194.185.255'; %This should be set to the slave computer's IP address
+Mstate.stimulusIDP = '192.168.0.101'; %This should be set to the slave computer's IP address
 
 Mstate.DAQdevice='dev1';
 Mstate.analogOUT_LED_channel='ao0';

@@ -42,7 +42,7 @@ switch(cmd(1))
         end
         
     case 'S'  %% start sampling...
-        
+        disp('case S triggered')
         trial = str2num(cmd(3:end));
 
         global nframes maxframes ...
