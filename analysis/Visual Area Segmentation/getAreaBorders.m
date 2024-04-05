@@ -1,24 +1,48 @@
-function getAreaBorders(anim,alt_expt,azi_expt)
-% run code from this directory:
-% Get the name of the user who logged in to the computer.
-userProfile = getenv('USERPROFILE');
-% Create a string to the "My Documents" folder of this Windows user:
-myDocsFolder = sprintf('%s\\My Documents', userProfile);
+function getAreaBorders(anim,alt_expt,azi_expt,grab)
+% This script will generate a variety of maps that are useful, including response 
+% magnitude maps, segmentation of area borders, and overlays of retinotopy, blood 
+% vessel images, and area borders. 
+%
+% anim: Animal name or prefix of files (R44 or 201008)
+% alt_expt: vertical (altitude) retinotopy phase map file (MAT file containing f1m)
+% azi_expt: horizontal (azimuth) retinotopy phase map file (MAT file containing f1m)
+% grab: anatomy file used for overlay (MAT file with 2D image in grab.img)
+%
+% Updated by Ingie Hong and Grace Hwang
 
-addpath([myDocsFolder '\MATLAB\Callaway_ISI\analysis\Visual Area Segmentation'])
-addpath([myDocsFolder '\MATLAB\Callaway_ISI\analysis\SerenoOverlay'])
-addpath([myDocsFolder '\MATLAB\Callaway_ISI\analysis\Utilities']);
- anim= 'XX0';  %'T00';
-% alt_expt='000_001';
- azi_expt='000_001';
- alt_expt='000_003';
+% Add necessary folders to path
+codeFolder = fileparts(which('Retinotopy_Master'));
+
+addpath([codeFolder '\analysis\Visual Area Segmentation'])
+addpath([codeFolder '\analysis\SerenoOverlay'])
+addpath([codeFolder '\analysis\Utilities']);
+
+% Check for input variables and if absent use default
+if nargin < 1 || isempty(anim)
+    anim= 'R44';  %'T00';
+    cd([codeFolder filesep 'Example Data' filesep 'R44'])
+end
+
+if nargin < 2 || isempty(alt_expt)
+   alt_expt='000_005';
+end
+
+if nargin < 3 || isempty(azi_expt)
+    azi_expt='000_006';
+end
+
+if nargin < 4 || isempty(grab)
+    grabfiles=dir('grab*.mat');
+    grab=grabfiles(1).name;
+end
+
 % Code checks for accuracy 
 %kmap_hor - Map of horizontal retinotopic location
 %kmap_vert - Map of vertical retinotopic location
 
 %% Set Save Directory & Low Pass Values
 
-SaveDir = [myDocsFolder '\RetinotopyPipelineData\AnalyzedData\',anim,'\'];
+SaveDir = [ pwd filesep];
 LP = [.1]; % 1 to run different low pass values, worth trying anything from 0 to 2
 
 [token azi ] = strtok(azi_expt,'_');
@@ -28,13 +52,13 @@ ExptID = strcat(anim,azi,alt)
 %% Generate and load kmaps for vertical and horizontal retinotopy
 
 % if you have kmaps you can skip this step
-generatekret(anim,azi_expt,alt_expt,LP) % this script also generates overlays of azi/alt & blood vessels as well as resp mag maps
+generatekret(anim,azi_expt,alt_expt,LP,grab) % this script also generates overlays of azi/alt & blood vessels as well as resp mag maps
 
 dimLP = size(LP);
  
 for iLP = 1:dimLP(2);
     
-    kmapfilename=strcat(SaveDir,'Kmaps\',anim,'_LP',num2str(LP(iLP)),'_Thresh_0.05_kret.mat')
+    kmapfilename=strcat(SaveDir,'Kmaps',filesep,anim,'_LP',num2str(LP(iLP)),'_Thresh_0.05_kret.mat')
     load(kmapfilename)
     kmap_hor_orig= -(kret.kmap_hor); % negative to correct values 
     kmap_vert_orig=kret.kmap_vert;
@@ -412,5 +436,5 @@ for iLP = 1:dimLP(2);
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.tif');
     saveas(gcf,overlaysFig,'tif');
     
-    close all
+    %close all
 end
