@@ -4,6 +4,7 @@ Ingie Hong and Grace Hwang
 Updated code for retinotopy image acquisition, stimulus presentation, and mouse visual area segmentation.  
 The code is now compatible with modern GigE/USB3 cameras, imaging/DAQ libraries, Windows 10/11, and Matlab 2017b-2022a versions.  
 Both intrinsic optical imaging and one-photon fluorescence imaging is supported.  
+Software can typically be installed in 30 mins. Hardware will take more depending on familiarity.   
 Forked, reorganized, and upgraded with permission from original authors.
 
 ![Alt text](https://github.com/SNLC/ISI/blob/master/NP-P160101A%20Fig%204.png?raw=true?raw=true "Figure 4 from Juavinett, Nauhaus, Garrett & Callaway 2016")
@@ -59,12 +60,21 @@ A widefield epifluorescence/reflected light microscope with motorized motion and
 5|	(Optional) Polarization gating to bias towards multiple-scattering events (Song 2022)  
 6|	(Optional) To correct for absorption of light by hemoglobin by measuring hemodynamics (Valley 2019), add backscatter imaging at 630 and 570 nm with an additional camera and illuminators.  
 
-**Retinotopy**
+**Retinotopy**   
 
-
+1|	On the master computer, navigate to the Looper window and load 'ori_0_180_3repeats.loop'. The number of repeats should be 3 and ori (orientation) conditions should be set to alternate between 0 and 180.   
+2|  In the paramSelect window, load 'Periodic_Grater_10cm_gray_bg\Alt_ret_zoom6_sduty05_sfreq008.param' first.   
+3|  Verify that the Imager displays the visual cortex area centered in the FOV of the camera. Use the gain and illumination to avoid saturation, which can be verified with the Histogram button.    
+4|  Use the Grab Single button in Imager to collect images to use for anatomical overlays.   
+5|  In the Main Window, adjust the Animal tag as appropriate and start vertical retinotopy by clicking the Run button (~25 minutes).   
+6|  After completion, load 'Periodic_Grater_10cm_gray_bgAzi_ret_zoom6_phase180_sduty05_sfreq0066.param' in paramSelect window and click the Run button to start horizontal retinotopy.   
+7|  Do the same for additional mice.   
+8|  Use the 'Close Display' button in the Main Window to terminate the Psychophysics Toolbox session on the slave computer.   
+9|  Use the caca command on the Master computer Matlab command prompt to terminate Retinotopy_Master.   
+   
 **Visual Area Segmentation**
 
-At the command line, use "getAreaBorders." Add the other files to your path for complete usage.
+At the command line, execute "getAreaBorders" for a demo of visual cortex segmentation. The current folder will move to retinotopy\Example Data\R44 and analysis will be run on a demo dataset (R44). This will be equivalent to running getAreaBorders('R44', '000_005', '000_006', 'grab_r44_000_007_17_Aug_2012_17_58_02.mat'). The expected output can be found in the paper cited below. The expected run time is 20-60 seconds.
 
 **About**
 
