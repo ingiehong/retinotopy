@@ -1,4 +1,4 @@
-function generatekret(anim,AzExpt,AltExpt,LP)
+function generatekret(anim,AzExpt,AltExpt,LP,grab)
 % Revision 7-Oct.-2018 by G. Hwang & I. Hong
 % Modified output directory structure 
 % Retinotopic analysis should be run from directory where all files are
@@ -54,9 +54,15 @@ for x=1:length(LP)
 
     
     %% GET PROCESSED DATA
-    filename=strcat(Anim,'_u',Expt1,'.mat');
-    filepath=fullfile(ProcessedDir,filename);
-    S = load(filepath);  %Returns the contents in the .mat under the structure S
+    try 
+        filename=strcat(Anim,'_u',Expt1,'.mat');
+        filepath=fullfile(ProcessedDir,filename);
+        S = load(filepath);  %Returns the contents in the .mat under the structure S
+    catch
+        filename=strcat(Anim,'_',Expt1,'.mat');
+        filepath=fullfile(ProcessedDir,filename);
+        S = load(filepath);  %Returns the contents in the .mat under the structure S
+    end
     f1m = S.f1m;    %f1m is a cell array with images from each condition
     
     %one axes hack
@@ -67,13 +73,13 @@ for x=1:length(LP)
     end
     
     %% GET ANATOMY IMAGE
-    % The current implementation only works in gCamp imaging mode
-    Anatdir=pwd;
-    %D = dir([Anatdir filesep '*.mat']);
-    %pic=D(001).name;
-    filename=[Anatdir,filesep,ExptID,'_000.mat'];
-    image=load(filename);
-    anatomypic_orig=image(1).im(:,:,1);
+
+    if nargin < 4 || isempty(grab)
+        Anatdir=pwd;
+        grab=[Anatdir,filesep,ExptID,'_000.mat'];
+    end
+    image=load(grab);
+    anatomypic_orig=image.grab(1).img(:,:,1);
     figure; imagesc(anatomypic_orig)
     
     %%
@@ -404,9 +410,17 @@ end
 
 
 %% GET PROCESSED DATA
-    filename=strcat(Anim,'_u',Expt1,'.mat'); 
-    filepath=strcat(ProcessedDir,filesep,filename);
-    S = load(filepath);  %Returns the contents in the .mat under the structure S
+
+    try 
+        filename=strcat(Anim,'_u',Expt1,'.mat');
+        filepath=fullfile(ProcessedDir,filename);
+        S = load(filepath);  %Returns the contents in the .mat under the structure S
+    catch
+        filename=strcat(Anim,'_',Expt1,'.mat');
+        filepath=fullfile(ProcessedDir,filename);
+        S = load(filepath);  %Returns the contents in the .mat under the structure S
+    end
+
     f1m = S.f1m;    %f1m is a cell array with images from each condition
     %one axes hack
     if length(f1m) == 2
@@ -821,8 +835,7 @@ end
         end
         
     end
-    %keyboard
-    close all
+    %close all
 
 %% SAVE VARIABLES
 
@@ -880,6 +893,6 @@ end
         
     end
     
-close all
+%close all
 
 end %ends LP loop
