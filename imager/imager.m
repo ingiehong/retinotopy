@@ -789,6 +789,10 @@ function datatxt_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
+global Mstate
+if ~isempty(Mstate)
+    hObject.set('String', Mstate.analyzerRoot )
+end
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc

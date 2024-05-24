@@ -22,7 +22,7 @@ function varargout = MainWindow(varargin)
 
 % Edit the above text to modify the response to help MainWindow
 
-% Last Modified by GUIDE v2.5 22-Dec-2017 13:04:49
+% Last Modified by GUIDE v2.5 23-May-2024 22:30:42
 % Revision 1-Oct-2018. G. Hwang & I. Hong. Removed some outdated comments.
 % Added a +1 to variable newexpt to allow experiment number to increment automatically.
 
@@ -218,19 +218,31 @@ function runbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to runbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global Mstate GUIhandles Pstate trialno analogIN
+global Mstate GUIhandles Pstate trialno analogIN imagerhandles
 
 %Run it!
 if ~Mstate.running
     
     %Check if this analyzer file already exists!
     roots = parseString(Mstate.analyzerRoot,';');    
+    if ~strcmp(roots{1},imagerhandles.datatxt.String)
+        answer = questdlg(['The directory set in Imager is different. Would you like to use that for the Analyzer too?  ' imagerhandles.datatxt.String], ...
+            'Use Imager directory?', 'Yes', 'No','No');
+        switch answer
+            case 'Yes'
+                GUIhandles.main.analyzerRoots.String = imagerhandles.datatxt.String;
+                Mstate.analyzerRoot = [imagerhandles.datatxt.String ';'];
+                roots = parseString(Mstate.analyzerRoot,';');   
+            case 'No'
+        end
+    end
+
     for i = 1:length(roots)  %loop through each root
         title = [Mstate.anim '_' sprintf('u%s',Mstate.unit) '_' Mstate.expt];
         dd = [roots{i} '\' Mstate.anim '\' title '.analyzer'];
         
         if(exist(dd))
-            warndlg('Directory exists!!!  Please advance experiment before running')
+            warndlg('Analyzer file with same name already exists!  Please advance experiment before running')
             return
         end
     end
@@ -540,3 +552,12 @@ function mouseBehavior_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of mouseBehavior
+
+
+% --- Executes on button press in pushbutton7.
+function pushbutton7_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+cacac

@@ -12,7 +12,16 @@ Nparam = length(Lstate.param); %number of looper parameters
 %actually variable values.
 nc = 1;
 for i = 1:Nparam
-    eval(['paramV = ' Lstate.param{i}{2} ';']);
+    try
+        eval(['paramV = ' Lstate.param{i}{2} ';']);
+    catch
+        disp('Problem in loop settings. Attempting to use default minimal settings..')
+        Ldum{1} = {['ori'] ['0']};
+        Lstate.param{1} = Ldum{1};
+        refreshLooperView
+        eval(['paramV = ' Lstate.param{i}{2} ';']);
+        disp('Worked.')
+    end
     nc = nc*length(paramV);
     if i == 1
         istring = ['1:' num2str(length(paramV))]; %input string for 'meshgrid'
