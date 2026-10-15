@@ -124,7 +124,9 @@ for x=1:length(LP)
     end
     %% run processkret
     
-    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3] = Gprocesskret_generatekmaps(f1m,bw,L,H);
+    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1m,bw,L,H);
+    horiz_delay_pooled = delayPool.hor;
+    checkPhaseSeam(kmap_hor,magS.hor,horiz_delay_pooled,ExptID,signalPolarity);
     
     xsize = Analyzer.P.param{6}{3};
     horscfactor = xsize/360;
@@ -470,7 +472,9 @@ end
     end
     
 %% RUN PROCESS KRET
-    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3] = Gprocesskret_generatekmaps(f1m,bw,L,H);
+    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1m,bw,L,H);
+    vert_delay_pooled = delayPool.vert;
+    checkPhaseSeam(kmap_vert,magS.vert,vert_delay_pooled,ExptID,signalPolarity);
     
     ysize = Analyzer.P.param{7}{3};
     vertscfactor = ysize/360;
@@ -879,6 +883,7 @@ end
             'horiz_ang2', horiz_ang2,...
             'horiz_ang3', horiz_ang3,...
             'horiz_delay', horiz_delay,...
+            'horiz_delay_pooled', horiz_delay_pooled,...
             'horiz_overlay', horiz_overlay,...
             'horiz_resp_mag', horiz_resp_mag,...
             'horiz_ret_thresh', horiz_ret_thresh{y},...
@@ -895,6 +900,7 @@ end
             'vert_ang2', vert_ang2,...
             'vert_ang3', vert_ang3,...
             'vert_delay', vert_delay,...
+            'vert_delay_pooled', vert_delay_pooled,...
             'vert_overlay', vert_overlay,...
             'vert_resp_mag', vert_resp_mag,...
             'vert_ret_thresh', vert_ret_thresh{y},...
@@ -922,6 +928,20 @@ end
 %close all
 
 end %ends LP loop
+
+function checkPhaseSeam(kmap_phase,mag,delay_pooled,ExptID,signalPolarity)
+% Diagnostic for the two ways a map ends up half a cycle off (wrong signal polarity,
+% or a delay fold on the wrong side): the +/-180 deg phase wrap then runs through the
+% responsive cortex instead of sitting at the screen edge.
+hi = mag >= prctile(mag(:),80); % responsive (top 20%) pixels
+seamFrac = mean(abs(kmap_phase(hi)) > 150);
+fprintf('generatekret: %s pooled delay %.1f deg of cycle; %.1f%% of responsive pixels within 30 deg of the +/-180 deg phase wrap\n',ExptID,delay_pooled,100*seamFrac);
+if seamFrac > 0.1
+    warning('generatekret:seam',['%s: %.0f%% of the responsive pixels lie within 30 deg of the +/-180 deg phase wrap, ' ...
+        'so the wrap seam probably runs through the visual cortex. Check signalPolarity (currently ''%s'': ' ...
+        'use ''positive'' for GCaMP and ''negative'' for intrinsic imaging) and the response delay (%.1f deg).'], ...
+        ExptID,100*seamFrac,signalPolarity,delay_pooled);
+end
 
 function f1m = applySignalPolarity(S,signalPolarity,filepath)
 % Give f1m the sign expected downstream: Gprocesskret_generatekmaps takes angle(-f1), the
