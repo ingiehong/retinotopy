@@ -1,6 +1,6 @@
 function saveOnlineAnalysis
 
-global F1 GUIhandles
+global F1 GUIhandles Mstate
 
 if get(GUIhandles.main.analysisFlag,'value')
 
@@ -17,7 +17,9 @@ if get(GUIhandles.main.analysisFlag,'value')
 
     fname = sprintf('%s\\%s_u%s_%s',dd,animal,unit,expt);
     %fname = [fname  '_' sprintf('%03d',trial)];
-    save(fname,'f1m')
+    % record how the frames were signed so that generatekret does not re-apply a polarity correction
+    if isfield(Mstate,'signalPolarity'), signalPolarity = Mstate.signalPolarity; else, signalPolarity = 'negative'; end
+    save(fname,'f1m','signalPolarity')
 
 %     A = get(GUIhandles.main.animal,'string');
 % %    A = 'A71';

@@ -18,6 +18,11 @@ updateMonitorValues
 
 Mstate.syncSize = 51;  %Size of the screen sync in cm
 
+% Polarity of the stimulus-evoked signal, applied once to the frames in onlineAnalysis/offlineAnalysis:
+%   'negative' = intrinsic signal imaging (reflectance decreases on response; the historical default)
+%   'positive' = fluorescence imaging such as GCaMP (signal increases on response)
+Mstate.signalPolarity = 'negative';
+
 Mstate.running = 0;
 
 % Get the name of the user who logged in to the computer.

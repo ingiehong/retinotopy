@@ -1,7 +1,8 @@
-function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
+function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename, signalPolarity)
 % Imitates the function of onlineAnalysis, on recorded files 
-% Code is currently inverting the sign of visually-induced changes in
-% brightness, to achieve correct phase analysis
+% signalPolarity: 'negative' (intrinsic imaging, default: frames are negated, as the old
+% hard-coded 2^16-x inversion did) or 'positive' (GCaMP: frames are used as recorded).
+% See signalPolaritySign.m.
 %
 % Example of usage: (please see offlineAnlaysis_script.m)
 % load('180705_u000_000_001.mat')
@@ -16,6 +17,8 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
  
 %if get(GUIhandles.main.analysisFlag,'value')
     
+    if nargin < 5, signalPolarity = 'negative'; end
+    signalSign = signalPolaritySign(signalPolarity); % -1 intrinsic, +1 GCaMP
     disp(['Starting offline phase analysis...'])
     Grabtimes = syncInfo.acqSyncs;
     %Stimulus starts on 2nd sync, and ends on the second to last.  I also
@@ -36,8 +39,7 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
     k = 1; % Frame #
     for j=fidx(1):fidx(end) % For all frames during stimulus
         
-        img = 2^16-double(Tens(:,:,j)); % Now 16bit rather than 12bit
-        %img = double(Tens(:,:,j)); % Don't invert (test)
+        img = signalSign*double(Tens(:,:,j)); % sign applied once here (was the hard-coded 2^16-x inversion)
         
         if j==fidx(1)
             acc = zeros(size(img)); % Empty cache for phase calculation, acc
@@ -72,8 +74,7 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename)
         saveastiff(avgvideo, output_tif_filename)   
     end
     
-    F0 = 2^16-double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Now 16bit rather than 12bit
-    %F0 = double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % Don't invert (test)
+    F0 = signalSign*double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % same sign as img
     
     acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
     acc = 2*acc ./ (k-1);

@@ -1,4 +1,4 @@
-function getAreaBorders(anim,alt_expt,azi_expt,grab)
+function getAreaBorders(anim,alt_expt,azi_expt,grab,signalPolarity,LP)
 % This script will generate a variety of maps that are useful, including response 
 % magnitude maps, segmentation of area borders, and overlays of retinotopy, blood 
 % vessel images, and area borders. 
@@ -7,6 +7,8 @@ function getAreaBorders(anim,alt_expt,azi_expt,grab)
 % alt_expt: vertical (altitude) retinotopy phase map file (MAT file containing f1m)
 % azi_expt: horizontal (azimuth) retinotopy phase map file (MAT file containing f1m)
 % grab: anatomy file used for overlay (MAT file with 2D image in grab.img)
+% signalPolarity: 'negative' (intrinsic imaging, default) or 'positive' (GCaMP); see generatekret
+% LP: low-pass sigma(s) in pixels (default 0.1); worth trying anything from 0 to 2
 %
 % Updated by Ingie Hong and Grace Hwang
 
@@ -33,7 +35,14 @@ end
 
 if nargin < 4 || isempty(grab)
     grabfiles=dir('grab*.mat');
+    if isempty(grabfiles)
+        error('getAreaBorders:grab','no grab*.mat anatomy file in %s; pass one as the 4th argument',pwd);
+    end
     grab=grabfiles(1).name;
+end
+
+if nargin < 5
+    signalPolarity = [];
 end
 
 % Code checks for accuracy 
@@ -43,7 +52,9 @@ end
 %% Set Save Directory & Low Pass Values
 
 SaveDir = [ pwd filesep];
-LP = [.1]; % 1 to run different low pass values, worth trying anything from 0 to 2
+if nargin < 6 || isempty(LP)
+    LP = .1; % to run different low pass values, worth trying anything from 0 to 2
+end
 
 [token azi ] = strtok(azi_expt,'_');
 [token alt ] = strtok(alt_expt,'_');
@@ -52,7 +63,7 @@ ExptID = strcat(anim,azi,alt)
 %% Generate and load kmaps for vertical and horizontal retinotopy
 
 % if you have kmaps you can skip this step
-generatekret(anim,azi_expt,alt_expt,LP,grab) % this script also generates overlays of azi/alt & blood vessels as well as resp mag maps
+generatekret(anim,azi_expt,alt_expt,LP,grab,signalPolarity) % this script also generates overlays of azi/alt & blood vessels as well as resp mag maps
 
 dimLP = size(LP);
  

@@ -1,17 +1,24 @@
-function getAreaBorders_Ingie(anim,alt_expt,azi_expt)
+function getAreaBorders_Ingie(anim,alt_expt,azi_expt,grab,signalPolarity,LP)
 % Revision 7-Oct.-2018 by G. Hwang & I. Hong
 % Adjusted pixels per mm to reflect current setup of 96.8 mm/pixel
 % Automatically creates PowerPoint files of figures created. This feature
 % requires pre-installation of exportToPPTX
 
 %% INPUTS
-%kmap_hor - Map of horizontal retinotopic location
-%kmap_vert - Map of vertical retinotopic location
+% anim: Animal name or prefix of files (e.g. 180817)
+% alt_expt: vertical (altitude) retinotopy experiment, e.g. '000_000' (MAT file with f1m)
+% azi_expt: horizontal (azimuth) retinotopy experiment, e.g. '000_001'
+% grab: anatomy file for the overlays (MAT file with grab.img); default: see generatekret
+% signalPolarity: 'negative' (intrinsic imaging, default) or 'positive' (GCaMP); see generatekret
+% LP: low-pass sigma(s) in pixels, default 2; worth trying anything from 0 to 2
 % Example code to run script getAreaBorders_Ingie('180817','000_000', '000_001')
 % getAreaBorders_Ingie('180817','000_002', '000_003')
+% getAreaBorders_Ingie('230901','000_000', '000_001', '', 'positive', [1 2]) % GCaMP data
 %% Set Save Directory & Low Pass Values
 
-LP = [2]%[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
+if nargin < 4, grab = []; end
+if nargin < 5, signalPolarity = []; end
+if nargin < 6 || isempty(LP), LP = 2; end %[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
 %LP = [.5 .75 1 1.5 2]
 [token azi ] = strtok(azi_expt,'_');
 [token alt ] = strtok(alt_expt,'_');
@@ -21,7 +28,7 @@ SaveDir = [ pwd filesep ]; % ExptID filesep
 %% Generate and load kmaps for vertical and horizontal retinotopy
 
 % If you have kmaps you can skip this step
-generatekret(anim,azi_expt,alt_expt,LP) % This script generates overlays of azi/alt & blood vessels as well as resp mag maps
+generatekret(anim,azi_expt,alt_expt,LP,grab,signalPolarity) % This script generates overlays of azi/alt & blood vessels as well as resp mag maps
 
 dimLP = size(LP);
 

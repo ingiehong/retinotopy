@@ -15,6 +15,15 @@ end
 dataPath= pathname;
 %load('180705_u000_000.analyzer', '-mat')
 
+%% Signal polarity: 'negative' (intrinsic imaging) or 'positive' (GCaMP).
+% Newer acquisitions record it in the analyzer (Analyzer.M.signalPolarity); for older data set it here.
+if isfield(Analyzer,'M') && isfield(Analyzer.M,'signalPolarity') && ~isempty(Analyzer.M.signalPolarity)
+    signalPolarity = Analyzer.M.signalPolarity;
+else
+    signalPolarity = 'negative';
+end
+disp(['Signal polarity: ' signalPolarity])
+
 %% Parse Analyzer
 conds=size(Analyzer.loops.conds,2);
 repeats=Analyzer.L.reps;
@@ -37,9 +46,9 @@ while exist(['syncInfo' num2str(trials+1)], 'var')
     %load('180705_u000_000_001.mat')
     im=squeeze(im);
     if isempty(F1{c})
-        [F1{c}, video] = offlineAnalysis(c,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'] );
+        [F1{c}, video] = offlineAnalysis(c,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'], signalPolarity );
     else
-        [tempF1, video] = offlineAnalysis(c,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'] );
+        [tempF1, video] = offlineAnalysis(c,syncInfo1, im, [pathname filesep F1name '_' sprintf('%03d',(trials)) '.tif'], signalPolarity );
         F1{c} = F1{c} + tempF1;
     end
     if ~exist('avgvideo','var') || size(avgvideo,4)<c
@@ -65,7 +74,7 @@ if conds*repeats ~= trials
 end
     
 f1m = F1;
-save([F1name '_offline'],'f1m')
+save([F1name '_offline'],'f1m','signalPolarity') % polarity is stored so generatekret uses f1m as is
 
 saveastiff(avgvideo(:,:,:,1), [pathname filesep F1name '_1_avg.tif']);
 saveastiff(avgvideo(:,:,:,2), [pathname filesep F1name '_2_avg.tif']);

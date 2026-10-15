@@ -1,4 +1,4 @@
-function generatekret(anim,AzExpt,AltExpt,LP,grab)
+function generatekret(anim,AzExpt,AltExpt,LP,grab,signalPolarity)
 % Revision 7-Oct.-2018 by G. Hwang & I. Hong
 % Modified output directory structure 
 % Retinotopic analysis should be run from directory where all files are
@@ -10,6 +10,16 @@ function generatekret(anim,AzExpt,AltExpt,LP,grab)
 % anim='R44';
 % AzExpt='000_005';
 % AltExpt='000_006';
+%
+% LP: vector of Gaussian low-pass sigmas (pixels); one kret file is written per value
+% grab: anatomy file (MAT file with grab.img). Default: the first grab*.mat in the current
+%   folder, else the mean of the raw frames in <ExptID>_000.mat
+% signalPolarity: 'negative' (intrinsic imaging) or 'positive' (GCaMP/fluorescence). Default:
+%   Analyzer.M.signalPolarity when the analyzer records it, else 'negative'. Legacy f1m files were
+%   always computed from inverted frames (2^16-x, the intrinsic convention), which leaves
+%   positive-going data half a cycle off; for 'positive' those f1m are negated here. f1m files
+%   that record their own signalPolarity (written by the current onlineAnalysis/offlineAnalysis)
+%   are used as stored. The polarity is saved in kret.signalPolarity.
 
 figTag = 1; %if you want to see hor/vert ret figures
 intensityFigTag = 1; %if you want to see intensity maps
@@ -17,6 +27,8 @@ intensityFigTag = 1; %if you want to see intensity maps
 %set low/highpass smoothing values
 LPdim = size(LP);
 HP = zeros(LPdim);
+if nargin < 5, grab = []; end
+if nargin < 6, signalPolarity = ''; end % resolved from the analyzer below
 
 %% process data for various LP smoothing
 for x=1:length(LP)
@@ -52,6 +64,19 @@ for x=1:length(LP)
      
     Horiz_Analyzer = Analyzer;
 
+    %% SIGNAL POLARITY
+    if isempty(signalPolarity)
+        if isfield(Analyzer,'M') && isfield(Analyzer.M,'signalPolarity') && ~isempty(Analyzer.M.signalPolarity)
+            signalPolarity = Analyzer.M.signalPolarity;
+        else
+            signalPolarity = 'negative';
+        end
+    end
+    if ~any(strcmpi(signalPolarity,{'negative','positive'}))
+        error('generatekret:signalPolarity','signalPolarity must be ''negative'' (intrinsic) or ''positive'' (GCaMP), got ''%s''',signalPolarity);
+    end
+    fprintf('generatekret: signal polarity ''%s''\n', signalPolarity);
+
     
     %% GET PROCESSED DATA
     try 
@@ -63,7 +88,7 @@ for x=1:length(LP)
         filepath=fullfile(ProcessedDir,filename);
         S = load(filepath);  %Returns the contents in the .mat under the structure S
     end
-    f1m = S.f1m;    %f1m is a cell array with images from each condition
+    f1m = applySignalPolarity(S,signalPolarity,filepath);    %f1m is a cell array with images from each condition
     
     %one axes hack
     if length(f1m) == 2
@@ -421,7 +446,7 @@ end
         S = load(filepath);  %Returns the contents in the .mat under the structure S
     end
 
-    f1m = S.f1m;    %f1m is a cell array with images from each condition
+    f1m = applySignalPolarity(S,signalPolarity,filepath);    %f1m is a cell array with images from each condition
     %one axes hack
     if length(f1m) == 2
         f1m{3} = f1m{2};
@@ -843,6 +868,7 @@ end
         
         kret = struct('LP', LP(x),...
             'thresh',thresh(y),...
+            'signalPolarity', signalPolarity,...
             'AzExpt', AzExpt,...
             'Horiz_ExptID', Horiz_ExptID,...
             'Horiz_Analyzer', Horiz_Analyzer,...
@@ -896,3 +922,19 @@ end
 %close all
 
 end %ends LP loop
+
+function f1m = applySignalPolarity(S,signalPolarity,filepath)
+% Give f1m the sign expected downstream: Gprocesskret_generatekmaps takes angle(-f1), the
+% convention for a response that was made positive-going when F1 was computed.
+f1m = S.f1m;
+if isfield(S,'signalPolarity')
+    % written by the polarity-aware onlineAnalysis/offlineAnalysis: the frame sign was applied once there
+    if ~strcmpi(S.signalPolarity,signalPolarity)
+        warning('generatekret:signalPolarity','%s records signalPolarity ''%s'' but ''%s'' was requested; using the file as stored',filepath,S.signalPolarity,signalPolarity);
+    end
+elseif strcmpi(signalPolarity,'positive')
+    % legacy f1m: the frames were always inverted (2^16-x, the intrinsic convention), which leaves a
+    % positive-going (GCaMP) response half a cycle off. Undo that inversion here.
+    f1m = cellfun(@(x) -x,f1m,'UniformOutput',false);
+end
+
