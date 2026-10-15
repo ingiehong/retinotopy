@@ -128,8 +128,9 @@ for x=1:length(LP)
     horiz_delay_pooled = delayPool.hor;
     checkPhaseSeam(kmap_hor,magS.hor,horiz_delay_pooled,ExptID,signalPolarity);
     
-    xsize = Analyzer.P.param{6}{3};
-    horscfactor = xsize/360;
+    xsize = getParamValue(Analyzer,'x_size'); % stimulus width in deg (kept in kret; display limits only)
+    horiz_s_freq = getParamValue(Analyzer,'s_freq'); % cycles per visual degree: one stimulus cycle spans 1/s_freq deg
+    horscfactor = (1/horiz_s_freq)/360; % phase (deg of cycle) -> visual deg. Was xsize/360, which is only right when s_freq == 1/xsize
     kmap_hor1 = kmap_hor*horscfactor; %puts kmap into eccentricity values instead of phase
     
     %% flip everything to be oriented correctly
@@ -476,8 +477,9 @@ end
     vert_delay_pooled = delayPool.vert;
     checkPhaseSeam(kmap_vert,magS.vert,vert_delay_pooled,ExptID,signalPolarity);
     
-    ysize = Analyzer.P.param{7}{3};
-    vertscfactor = ysize/360;
+    ysize = getParamValue(Analyzer,'y_size'); % stimulus height in deg (kept in kret; display limits only)
+    vert_s_freq = getParamValue(Analyzer,'s_freq'); % cycles per visual degree: one stimulus cycle spans 1/s_freq deg
+    vertscfactor = (1/vert_s_freq)/360; % phase (deg of cycle) -> visual deg. Was ysize/360, which is only right when s_freq == 1/ysize
     kmap_vert1 = kmap_vert*vertscfactor; %puts kmap into eccentricity values instead of phase
     
     %% flip everything to be oriented correctly
@@ -911,7 +913,11 @@ end
             'resp_mag_exclusiveROI', resp_mag_exclusiveROI{y},...
             'AnatomyPic',anatomypic,...
             'xsize', xsize,...
-            'ysize', ysize);
+            'ysize', ysize,...
+            'horiz_s_freq', horiz_s_freq,...
+            'vert_s_freq', vert_s_freq,...
+            'deg_per_cycle_hor', 1/horiz_s_freq,...
+            'deg_per_cycle_vert', 1/vert_s_freq);
   
         AnalDir1 = strcat(SaveDir,'Kmaps/');
         if iscell(AnalDir1)
@@ -928,6 +934,15 @@ end
 %close all
 
 end %ends LP loop
+
+function v = getParamValue(Analyzer,name)
+% Look a stimulus parameter up by name in Analyzer.P.param (param{i} = {name, type, value}).
+pn = cellfun(@(p) p{1},Analyzer.P.param,'UniformOutput',false);
+k = find(strcmp(pn,name),1);
+if isempty(k)
+    error('generatekret:param','parameter ''%s'' not found in Analyzer.P.param',name);
+end
+v = Analyzer.P.param{k}{3};
 
 function checkPhaseSeam(kmap_phase,mag,delay_pooled,ExptID,signalPolarity)
 % Diagnostic for the two ways a map ends up half a cycle off (wrong signal polarity,
