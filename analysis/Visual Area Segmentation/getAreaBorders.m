@@ -26,11 +26,11 @@ if nargin < 1 || isempty(anim)
 end
 
 if nargin < 2 || isempty(alt_expt)
-   alt_expt='000_005';
+   alt_expt='000_006'; % R44_u000_006.analyzer: altazimuth = 'altitude'
 end
 
 if nargin < 3 || isempty(azi_expt)
-    azi_expt='000_006';
+    azi_expt='000_005'; % R44_u000_005.analyzer: altazimuth = 'azimuth'
 end
 
 if nargin < 4 || isempty(grab)

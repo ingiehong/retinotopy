@@ -67,14 +67,29 @@ A widefield epifluorescence/reflected light microscope with motorized motion and
 3|  Verify that the Imager displays the visual cortex area centered in the FOV of the camera. Use the gain and illumination to avoid saturation, which can be verified with the Histogram button.    
 4|  Use the Grab Single button in Imager to collect images to use for anatomical overlays.   
 5|  In the Main Window, adjust the Animal tag as appropriate and start vertical retinotopy by clicking the Run button (~25 minutes).   
-6|  After completion, load 'Periodic_Grater_10cm_gray_bgAzi_ret_zoom6_phase180_sduty05_sfreq0066.param' in paramSelect window and click the Run button to start horizontal retinotopy.   
+6|  After completion, load 'Periodic_Grater_10cm_gray_bg\Azi_ret_zoom6_phase180_sduty05_sfreq0066.param' in paramSelect window and click the Run button to start horizontal retinotopy.   
 7|  Do the same for additional mice.   
 8|  Use the 'Close Display' button in the Main Window to terminate the Psychophysics Toolbox session on the slave computer.   
-9|  Use the caca command on the Master computer Matlab command prompt to terminate Retinotopy_Master.   
+9|  Use the cacac command on the Master computer Matlab command prompt to terminate Retinotopy_Master.   
    
 **Visual Area Segmentation**
 
-At the command line, execute "getAreaBorders" for a demo of visual cortex segmentation. The current folder will move to retinotopy\Example Data\R44 and analysis will be run on a demo dataset (R44). This will be equivalent to running getAreaBorders('R44', '000_005', '000_006', 'grab_r44_000_007_17_Aug_2012_17_58_02.mat'). The expected output can be found in the paper cited below. The expected run time is 20-60 seconds.
+At the command line, execute "getAreaBorders" for a demo of visual cortex segmentation. The current folder will move to retinotopy\Example Data\R44 and analysis will be run on a demo dataset (R44). This will be equivalent to running getAreaBorders('R44', '000_006', '000_005', 'grab_r44_000_007_17_Aug_2012_17_58_02.mat'): the altitude (vertical retinotopy) experiment comes first and the azimuth (horizontal) experiment second; generatekret checks the 'altazimuth' parameter of each analyzer and stops if they are swapped. The expected output can be found in the paper cited below. The expected run time is 20-60 seconds.
+
+The full call is getAreaBorders(anim, alt_expt, azi_expt, grab, signalPolarity, LP) (getAreaBorders_Ingie takes the same arguments and runs at the native camera resolution). The analysis needs, in the current folder, the two analyzer files (<anim>_u<expt>.analyzer), the two phase-map files with f1m (<anim>_u<expt>.mat or <anim>_<expt>.mat, written by the online analysis or by offlineAnalysis_script) and an anatomy image (grab*.mat; without one the mean of the first raw frames of <anim>_u<expt>_000.mat is used).
+
+**Signal polarity and pixel scale**
+
+Intrinsic signal imaging gives a negative-going response (reflectance decreases), one-photon calcium imaging (GCaMP) a positive-going one. The phase analysis has to know which: with the wrong sign every retinotopic map is shifted by half a stimulus cycle and the +/-180 degree phase wrap runs through the visual cortex (visual area segmentation then fails). Set Mstate.signalPolarity in Stimulator_master\DisplayCode\configureMstate.m to 'negative' (intrinsic, the default) or 'positive' (GCaMP) before acquiring; it is applied once to the frames in onlineAnalysis/offlineAnalysis, saved in the analyzer (Analyzer.M.signalPolarity) and next to f1m. For data analysed offline pass it as the 5th argument of getAreaBorders / getAreaBorders_Ingie (6th of generatekret): phase-map files written before this setting existed were always computed with the intrinsic sign, so for GCaMP data recorded that way pass 'positive' and generatekret negates f1m once. The polarity used is stored in kret.signalPolarity, and generatekret warns ('generatekret:seam') when a large fraction of the responsive pixels sits at the phase wrap.
+
+Phase is converted to visual degrees with the stimulus spatial frequency: one cycle of the periodic bar spans 1/s_freq degrees (151.5 deg for the azimuth and 125 deg for the altitude parameter files above, slightly more than the 145 x 120 degree screen), so a map in degrees is phase/360 * (1/s_freq); s_freq is stored in kret (horiz_s_freq, vert_s_freq). The response delay of each pixel is folded to within +/-90 degrees of the delay pooled over the responsive pixels (kret.horiz_delay_pooled, kret.vert_delay_pooled). The segmentation morphology (Garrett et al. 2014) is tuned for 39 pixels/mm: getAreaBorders downsamples the maps by 2 to reach it (78 pixels/mm camera), getAreaBorders_Ingie keeps the native resolution (96.8 pixels/mm with the setup above).
+
+**Dependencies**
+
+•	Acquisition (Master): Image Acquisition Toolbox with the Point Grey/FLIR support package, Data Acquisition Toolbox with the NI-DAQmx support package, Instrument Control Toolbox (udp link to the Slave), Signal Processing Toolbox (sgolayfilt), Statistics and Machine Learning Toolbox (prctile). Acquisition runs on Windows only (FlyCapture and NI-DAQmx drivers).  
+•	Stimulus (Slave): Psychophysics Toolbox, Instrument Control Toolbox.  
+•	Analysis (any OS): Image Processing Toolbox, Statistics and Machine Learning Toolbox.  
+•	saveastiff / loadtiff (YoonOh Tak, MATLAB File Exchange) are called by imager\GrabSave.m, offlineAnalysis.m, offlineAnalysis_script.m and analysis\Visual Area Segmentation\average_*_filter_tifs.m but are not shipped with this repository: download them and add them to the path (the imager and the offline phase analysis stop at the first tif save without them).  
 
 **About**
 
