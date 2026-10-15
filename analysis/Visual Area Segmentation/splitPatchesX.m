@@ -150,6 +150,9 @@ centerPatch = getCenterPatch(kmap_rad,im,R);
 centerPatchI = getCenterPatch(kmap_radI,imI,R);
 clear spCov JacCoverage ActualCoverage MagFac
 
+V1q = getV1id(im); %largest patch = V1 (same labelling as imlab); reported below but never removed
+tolCov = 1.05;     %criterion 2: redundant when the Jacobian-integrated coverage exceeds the actual coverage by this factor
+
 for q = 1:length(imdom)-1 %loop through each patch ("visual area")
 
     idpatch = find(imlab == q & centerPatch);
@@ -166,12 +169,19 @@ for q = 1:length(imdom)-1 %loop through each patch ("visual area")
 
     CovOverlap = JacCoverage(q)/ActualCoverage(q);
 
-    % if JacCoverage/(pi*R^2) < .01 %get rid of the areas with practically no screen coverage
-    if CovOverlap > 1.05 | JacCoverage(q)/(pi*R^2) < .01
-
+    % JacCoverage/(pi*R^2) < .01 gets rid of the areas with practically no screen coverage
+    redundant = CovOverlap > tolCov || JacCoverage(q)/(pi*R^2) < .01;
+    if redundant && q == V1q
+        decision = 'kept (V1 is never removed)';
+    elseif redundant
+        decision = 'removed';
         id = find(imlab == q);
         im(id) = 0;
+    else
+        decision = 'kept';
     end
+    fprintf('splitPatchesX: patch %2d of %d: Jacobian coverage %7.1f deg^2, actual coverage %7.1f deg^2, ratio %.3f -> %s\n', ...
+        q,length(imdom)-1,JacCoverage(q),ActualCoverage(q),CovOverlap,decision);
 
 end
 

@@ -18,6 +18,12 @@ Sereno = sin(angle(vdiff));
 imlab = bwlabel(im,4);  %Better to keep this as default (i.e. don' put in a 4)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fuseflag = 0;
+if ~any(imlab(:))
+    warning('fusePatchesX:empty','no patches left to fuse (every patch was removed by splitPatchesX); check the retinotopic maps');
+    return
+end
+
 hh = fspecial('gaussian',size(kmap_hor),2);
 kmap_horS = ifft2(fft2(kmap_hor).*abs(fft2(hh)));
 kmap_vertS = ifft2(fft2(kmap_vert).*abs(fft2(hh)));
