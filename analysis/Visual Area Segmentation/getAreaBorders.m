@@ -12,17 +12,17 @@ function getAreaBorders(anim,alt_expt,azi_expt,grab,signalPolarity,LP)
 %
 % Updated by Ingie Hong and Grace Hwang
 
-% Add necessary folders to path
-codeFolder = fileparts(which('Retinotopy_Master'));
+% Add necessary folders to path (this file lives in <repo>/analysis/Visual Area Segmentation)
+codeFolder = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 
-addpath([codeFolder '\analysis\Visual Area Segmentation'])
-addpath([codeFolder '\analysis\SerenoOverlay'])
-addpath([codeFolder '\analysis\Utilities']);
+addpath(fullfile(codeFolder,'analysis','Visual Area Segmentation'))
+addpath(fullfile(codeFolder,'analysis','SerenoOverlay'))
+addpath(fullfile(codeFolder,'analysis','Utilities'));
 
 % Check for input variables and if absent use default
 if nargin < 1 || isempty(anim)
     anim= 'R44';  %'T00';
-    cd([codeFolder filesep 'Example Data' filesep 'R44'])
+    cd(fullfile(codeFolder,'Example Data','R44'))
 end
 
 if nargin < 2 || isempty(alt_expt)
@@ -118,6 +118,7 @@ for iLP = 1:dimLP(2);
     ydom = (0:size(kmap_hor,1)-1)*mmperpix;
     
     screenDim = get(0,'ScreenSize');
+    if screenDim(3) <= 1, screenDim = [1 1 1800 1100]; end % no display (matlab -batch / -nodisplay)
     figure(10), clf
     set(10,'Position',[0,0,screenDim(3),screenDim(4)])
     
@@ -390,8 +391,8 @@ for iLP = 1:dimLP(2);
     aw = 1-ratio;  %anatomy weight of image (scalar)
     fw = ratio;  %anatomy weight of image (scalar)
     
-    grayid = gray;
-    hsvid = hsv;
+    grayid = gray(64); % the overlays index rows 1..64; without the length argument R2019b+ returns 256 rows
+    hsvid = hsv(64);
     
     %normalize overlay maps
     kmap_hor_overlay = kmap_hor_orig;

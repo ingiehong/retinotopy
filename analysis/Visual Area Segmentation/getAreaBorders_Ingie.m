@@ -35,7 +35,7 @@ dimLP = size(LP);
 for iLP = 1:dimLP(2);
     
     disp(['Starting analysis for LP:' num2str(LP(iLP))]);
-    kmapfilename=strcat(SaveDir,'Kmaps\',anim,'_LP',num2str(LP(iLP)),'_Thresh_0.1_kret.mat')
+    kmapfilename=fullfile(SaveDir,'Kmaps',[anim '_LP' num2str(LP(iLP)) '_Thresh_0.1_kret.mat'])
     load(kmapfilename)
     kmap_hor_orig= -(kret.kmap_hor); % negative to correct values 
     kmap_vert_orig=kret.kmap_vert;
@@ -87,6 +87,7 @@ for iLP = 1:dimLP(2);
     ydom = (0:size(kmap_hor,1)-1)*mmperpix;
     
     screenDim = get(0,'ScreenSize');
+    if screenDim(3) <= 1, screenDim = [1 1 1800 1100]; end % no display (matlab -batch / -nodisplay)
     figure(10), clf
     set(10,'Position',[0,0,screenDim(3),screenDim(4)])
     subplot(3,4,1)
@@ -359,8 +360,8 @@ for iLP = 1:dimLP(2);
     aw = 1-ratio;  %anatomy weight of image (scalar)
     fw = ratio;  %anatomy weight of image (scalar)
     
-    grayid = gray;
-    hsvid = hsv;
+    grayid = gray(64); % the overlays index rows 1..64; without the length argument R2019b+ returns 256 rows
+    hsvid = hsv(64);
     
     %normalize overlay maps
     kmap_hor_overlay = kmap_hor_orig;

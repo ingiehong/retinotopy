@@ -212,7 +212,7 @@ im = round(im*63+1);
 im(bgid) = NaN;
 
 dim = size(im);
-jetid = jet;
+jetid = jet(64); % the map is indexed 1..64 below; without the length argument R2019b+ returns 256 rows
 imout = zeros(dim(1),dim(2),3);
 for i = 1:dim(1)
     for j = 1:dim(2)

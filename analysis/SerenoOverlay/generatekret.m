@@ -51,15 +51,15 @@ for x=1:length(LP)
     Horiz_ExptID = ExptID;
  
     %% GET ANALYZER FILE
-    [token azi ] = strtok(AzExpt,'_');
-    AnalyzerID = strcat(anim, '_u000', azi); %work around to get correct analyzer ID
-    AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+    AnalyzerID = [anim '_u' AzExpt];
+    AnaDir = fullfile(AnalyzerDir,[AnalyzerID '.analyzer']);
     load(AnaDir,'Analyzer','-mat')  
     
     % confirm this is the horiz ret expt
-    if strcmp(Analyzer.P.param{12}(3), 'altitude') == 1;
-        disp('Experiments entered incorrectly.')
-        %pause
+    altazimuth = getParamValue(Analyzer,'altazimuth');
+    if ~strcmp(altazimuth,'azimuth')
+        error('generatekret:axis',['%s is not an azimuth (horizontal retinotopy) experiment: altazimuth = ''%s''. ' ...
+            'The azimuth experiment is the 2nd argument of generatekret (the 3rd of getAreaBorders).'],AnalyzerID,altazimuth);
     end
      
     Horiz_Analyzer = Analyzer;
@@ -99,12 +99,26 @@ for x=1:length(LP)
     
     %% GET ANATOMY IMAGE
 
-    if nargin < 4 || isempty(grab)
-        Anatdir=pwd;
-        grab=[Anatdir,filesep,ExptID,'_000.mat'];
+    if isempty(grab)
+        g = dir(fullfile(GrabDir,'grab*.mat'));
+        if ~isempty(g)
+            grab = fullfile(g(1).folder,g(1).name);
+        else % no grab file: fall back to the raw frames of this experiment's first trial
+            grab = fullfile(GrabDir,[ExptID '_000.mat']);
+        end
     end
-    image=load(grab);
-    anatomypic_orig=image.grab(1).img(:,:,1);
+    fprintf('generatekret: anatomy image from %s\n',grab);
+    G = load(grab);
+    if isfield(G,'grab')
+        anatomypic_orig = G.grab(1).img(:,:,1);
+    elseif isfield(G,'im') % raw trial tensor: use the mean of its first frames
+        im = squeeze(G.im);
+        anatomypic_orig = mean(double(im(:,:,1:min(50,size(im,3)))),3);
+        clear im
+    else
+        error('generatekret:anatomy','%s contains neither a ''grab'' struct nor a raw frame tensor ''im''',grab);
+    end
+    clear G
     figure; imagesc(anatomypic_orig)
     
     %%
@@ -226,8 +240,8 @@ for x=1:length(LP)
     ratio=.2;
     aw = 1-ratio;  %anatomy weight of image (scalar)
     fw = ratio;  %anatomy weight of image (scalar)
-    grayid = gray;
-    hsvid = hsv;
+    grayid = gray(64); % the overlays index rows 1..64; without the length argument R2019b+ returns 256 rows
+    hsvid = hsv(64);
     dim = size(kmap_hor_overlay);
     for i = 1:dim(1)
         for j = 1:dim(2)
@@ -318,7 +332,7 @@ if figTag == 1;
     axis tight
     
     % save figures
-    AnalDir = strcat(SaveDir,'KretFigures/');
+    AnalDir = [fullfile(SaveDir,'KretFigures') filesep];
     if iscell(AnalDir)
         AnalDir=AnalDir{1};
     end
@@ -427,12 +441,16 @@ end
     Vert_ExptID=ExptID;
     
     %% GET ANALYZER % 
-    [token alt ] = strtok(AltExpt,'_');
-    AnalyzerID = strcat(anim, '_u000', alt); %work around to get correct analyzer ID
-    AnaDir = [AnalyzerDir,'\',AnalyzerID  '.analyzer']; % switched out ExptID with AnalyzerID
+    AnalyzerID = [anim '_u' AltExpt];
+    AnaDir = fullfile(AnalyzerDir,[AnalyzerID '.analyzer']);
     load(AnaDir,'Analyzer','-mat')  
-   % AnaDir = [AnalyzerDir,'\',ExptID '.analyzer']; %original code is obsolete
-   % load(AnaDir,'Analyzer','-mat') %original code is obsolete
+    
+    % confirm this is the vert ret expt
+    altazimuth = getParamValue(Analyzer,'altazimuth');
+    if ~strcmp(altazimuth,'altitude')
+        error('generatekret:axis',['%s is not an altitude (vertical retinotopy) experiment: altazimuth = ''%s''. ' ...
+            'The altitude experiment is the 3rd argument of generatekret (the 2nd of getAreaBorders).'],AnalyzerID,altazimuth);
+    end
 
     Vert_Analyzer = Analyzer;
 
@@ -568,8 +586,8 @@ end
     ratio=.2;
     aw = 1-ratio;  %anatomy weight of image (scalar)
     fw = ratio;  %anatomy weight of image (scalar)
-    grayid = gray;
-    hsvid = hsv;
+    grayid = gray(64); % the overlays index rows 1..64; without the length argument R2019b+ returns 256 rows
+    hsvid = hsv(64);
     dim = size(kmap_vert_overlay);
     for i = 1:dim(1)
         for j = 1:dim(2)
@@ -659,7 +677,7 @@ if figTag == 1;
     axis tight
     
     
-    AnalDir = strcat(SaveDir,'KretFigures/');
+    AnalDir = [fullfile(SaveDir,'KretFigures') filesep];
     
     filename5 = strcat(ExptID,'_LP',num2str(LP(x)),'_VertRet1');
     filename8 = strcat(ExptID,'_LP',num2str(LP(x)),'_VertRet2');
@@ -892,7 +910,7 @@ end
             'horiz_resp_mag_ROI', horiz_resp_mag_ROI{y},...
             'horiz_ret_thresh_combinedROI', horiz_ret_thresh_combinedROI{y},...
             'horiz_ret_thresh_exclusiveROI', horiz_ret_thresh_exclusiveROI{y},...
-            'AltExpt', AzExpt,...
+            'AltExpt', AltExpt,...
             'Vert_ExptID', Vert_ExptID,...
             'Vert_Analyzer', Vert_Analyzer,...
             'kmap_vert_phase', kmap_vert_phase,...
@@ -919,7 +937,7 @@ end
             'deg_per_cycle_hor', 1/horiz_s_freq,...
             'deg_per_cycle_vert', 1/vert_s_freq);
   
-        AnalDir1 = strcat(SaveDir,'Kmaps/');
+        AnalDir1 = [fullfile(SaveDir,'Kmaps') filesep];
         if iscell(AnalDir1)
             AnalDir1=AnalDir1{1};
         end
