@@ -89,7 +89,7 @@ Phase is converted to visual degrees with the stimulus spatial frequency: one cy
 •	Acquisition (Master): Image Acquisition Toolbox with the Point Grey/FLIR support package, Data Acquisition Toolbox with the NI-DAQmx support package, Instrument Control Toolbox (udp link to the Slave), Signal Processing Toolbox (sgolayfilt), Statistics and Machine Learning Toolbox (prctile). Acquisition runs on Windows only (FlyCapture and NI-DAQmx drivers).  
 •	Stimulus (Slave): Psychophysics Toolbox, Instrument Control Toolbox.  
 •	Analysis (any OS): Image Processing Toolbox, Statistics and Machine Learning Toolbox.  
-•	saveastiff / loadtiff (YoonOh Tak, MATLAB File Exchange) are called by imager\GrabSave.m, offlineAnalysis.m, offlineAnalysis_script.m and analysis\Visual Area Segmentation\average_*_filter_tifs.m but are not shipped with this repository: download them and add them to the path (the imager and the offline phase analysis stop at the first tif save without them).  
+•	saveastiff / loadtiff (YoonOh Tak, MATLAB File Exchange, BSD licence) are called by imager\GrabSave.m, offlineAnalysis.m, offlineAnalysis_script.m and analysis\Visual Area Segmentation\average_*_filter_tifs.m; they ship in external\saveastiff_4.0 (on the path through Retinotopy_Master's genpath; for offline analysis addpath(genpath('external'))).  
 
 **About**
 
