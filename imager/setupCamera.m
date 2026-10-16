@@ -17,6 +17,20 @@ if ~isempty(cfg.binning) && cfg.binning > 1
         fprintf('setupCamera: this camera has no BinningHorizontal/BinningVertical property; binning not applied\n');
     end
 end
+% After a binning change the videoinput keeps reporting the old (unbinned) VideoResolution until its
+% engine refreshes the maximum frame size later ('Resetting the ROI as the max width and height has
+% been updated'). imager.m sizes the preview image from VideoResolution right after this function,
+% so pin the ROI to the frame size the camera itself reports now: VideoResolution follows ROIPosition.
+if isprop(src, 'Width') && isprop(src, 'Height')
+    target = [double(src.Width) double(src.Height)];
+    if ~isequal(vid.VideoResolution, target)
+        try
+            vid.ROIPosition = [0 0 target];
+        catch e
+            warning('setupCamera:resolution', 'could not set the ROI to the camera''s %d x %d px frame (%s); the preview may show the frames in one corner', target(1), target(2), e.message);
+        end
+    end
+end
 if ~isempty(cfg.roi)
     vid.ROIPosition = cfg.roi;   % [xoffset yoffset width height] in (binned) pixels
 end
