@@ -70,5 +70,5 @@ vid.FramesPerTrigger = round(total_time * cfg.fps);
 
 %% report
 res = vid.VideoResolution;
-fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s\n', ...
-    cfg.profile, cfg.adaptor, vid.VideoFormat, res(1), res(2), actual, cfg.fps, cfg.exposure_ms, mat2str(cfg.binning), cfg.strobeLine);
+fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s, %.2f GB of frames per %g s trial\n', ...
+    cfg.profile, cfg.adaptor, vid.VideoFormat, res(1), res(2), actual, cfg.fps, cfg.exposure_ms, mat2str(cfg.binning), cfg.strobeLine, checkFrameMemory(vid, vid.FramesPerTrigger), total_time);

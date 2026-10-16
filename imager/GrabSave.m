@@ -11,6 +11,7 @@ N = ceil(total_time*FPS);
 cfg = cameraConfig;
 
 cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
+checkFrameMemory(vid, vid.FramesPerTrigger);   % errors with the fix before a trial that cannot fit in RAM
 start(vid);
 trigger(vid);
 disp('Video acquisition triggered!')

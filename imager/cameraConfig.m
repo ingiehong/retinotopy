@@ -46,7 +46,7 @@ switch cfg.profile
         cfg.deviceID = 1;
         cfg.format = 'Mono16';                            % 12-bit data in 16-bit frames
         cfg.fallbackFormat = 'Mono8';
-        cfg.binning = 4;                                  % hardware binning factor (both axes); 8 if the camera allows it
+        cfg.binning = 8;                                  % hardware binning factor (both axes): 8 -> 665x575 px, 0.76 MB/frame, 2.2 GB per 191 s trial at 15 Hz; 4 (1330x1150 px, 3 MB/frame) needs cfg.roi
         cfg.binningMode = 'Sum';                          % 'Sum' (adds well depth) or 'Average'
         cfg.roi = [];                                     % e.g. [200 100 700 700] in binned pixels around the window; [] = full binned frame
         cfg.strobeLine = 'Line2';                         % GenICam line used as the frame strobe (red wire)

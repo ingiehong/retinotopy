@@ -16,6 +16,14 @@ if get(GUIhandles.main.analysisFlag,'value')
     T = mean(diff(Disptimes)) %This one might be more accurate
     disp(['Detected ' num2str(length(Disptimes)-1) ' trials of visual stimulation. Average length: ' num2str(T) ])
     fidx = find(Grabtimes>Disptimes(1) & Grabtimes<Disptimes(end));  %frames during stimulus
+    nAvail = size(Tens,3);
+    if any(fidx > nAvail)   % the camera kept pulsing after the acquisition stopped (dropped frames, out of memory)
+        warning('onlineAnalysis:frames', '%d camera pulses fall within the stimulus but only %d frames were saved; analysing the saved frames only', numel(fidx), nnz(fidx <= nAvail));
+        fidx = fidx(fidx <= nAvail);
+    end
+    if numel(fidx) < 2
+        error('onlineAnalysis:noFrames', 'no saved frames fall within the stimulus period: check the camera strobe line and the frame memory');
+    end
 
     framest = Grabtimes(fidx)-Disptimes(1);  % frame sampling times in sec
     frameang = framest/T*2*pi;
