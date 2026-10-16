@@ -6,8 +6,6 @@ global FPS Tens ROIcrop GUIhandles
  maxframes = ceil(total_time*FPS);
  disp(['Acquiring ' num2str(total_time) ' seconds and ' num2str(maxframes) ' frames.'])
 
-if get(GUIhandles.main.analysisFlag,'value') || ~get(GUIhandles.main.streamFlag,'value')            
-    Tens = zeros(ROIcrop(3),ROIcrop(4),maxframes,'uint16'); %array of zero images produced here
-else
-    Tens = 0;
-end
+% GrabSave assigns the acquired frames to Tens directly (Tens = im), so preallocating a full-size
+% array here only doubled the memory footprint; with large cameras (Blackfly S) that alone exhausted the PC.
+Tens = 0;

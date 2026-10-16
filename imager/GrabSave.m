@@ -1,35 +1,46 @@
 function GrabSave(fname)
 %Revision 1-Oct.-2018 G. Hwang and I. Hong
-%Commented out code that used an obsolete frame grabber
-%Note: This code will only work with a FLIR Grasshopper3 PGE camera
+%Revision 16-Oct.-2026: camera profiles (imager/cameraConfig.m): Grasshopper3 via the pointgrey adaptor
+%or Blackfly S via the gentl adaptor; strobe gated through cameraStrobe.m; frame count checked;
+%large trials saved with -v7.3 and BigTIFF.
 
 global Tens ROIcrop IMGSIZE GUIhandles FPS vid src
 
 total_time =  str2num(get(findobj('Tag','timetxt'),'String'));
 N = ceil(total_time*FPS);
+cfg = cameraConfig;
 
-%pause(1)
-src.Strobe2 = 'On';
+cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
 start(vid);
 trigger(vid);
 disp('Video acquisition triggered!')
 
-%% Stop acquisition
-pause(total_time+0.1) %this specifies how long camera will stay in strobe2=on mode
-%above line should delay more than total_time to enable saving
+%% Wait for logging to finish, then stop
+try
+    wait(vid, total_time+10, 'logging');   % returns as soon as FramesPerTrigger frames are logged
+catch
+    pause(total_time+0.1)                  % older adaptors: blind wait
+end
 stop(vid)
-src.Strobe2 = 'Off';
-%pause(1) % delay for analog data acquisition to finish.
-im = squeeze(getdata(vid));
+cameraStrobe(src, false, cfg);
+nAvail = vid.FramesAvailable;
+if nAvail ~= vid.FramesPerTrigger
+    warning('GrabSave:frames', '%d frames available but %d were requested (dropped frames or memory?); the camera pulses recorded by the DAQ will not match the saved frames one to one', nAvail, vid.FramesPerTrigger);
+end
+[im, frameTimes] = getdata(vid, nAvail);
+im = squeeze(im);
 Tens = im;
 tic
-save([ fname '.mat'], 'im');
+info = whos('im'); nbytes = info.bytes;
+if nbytes > 2^31 - 1
+    save([ fname '.mat'], 'im', 'frameTimes', '-v7.3');   % the default v7 format silently writes an empty file above 2 GB
+else
+    save([ fname '.mat'], 'im', 'frameTimes');
+end
 toc
-% tic
-% save_tif(im, [ fname '.tif'])
-% toc
 tic
-saveastiff(im, [ fname '.tif'])
+tifopts = struct('big', nbytes > 2^32 - 1);   % BigTIFF above 4 GB
+saveastiff(im, [ fname '.tif'], tifopts)
 toc
 %Creating grab file
 tmp=Tens(:,:,10);

@@ -64,7 +64,8 @@ function imager_OpeningFcn(hObject, eventdata, handles, varargin)
 %% Create
 
 global IMGSIZE FPS;
-FPS = 10;  %% frames per second
+cameraCfg = cameraConfig;   % camera profile (imager/cameraConfig.m): adaptor, format, binning, fps, exposure, strobe line
+FPS = cameraCfg.fps;        %% frames per second
 
 
 %%  serial communication...
@@ -278,42 +279,20 @@ imagerhandles.hwroisize = 128;
 global vid src 
 
 try
-    vid = videoinput('pointgrey', 1, 'F7_Mono16_480x300_Mode5');
+    vid = videoinput(cameraCfg.adaptor, cameraCfg.deviceID, cameraCfg.format);
 catch ME
     try 
-        vid = videoinput('pointgrey', 1, 'F7_Mono16_960x600_Mode1');
+        vid = videoinput(cameraCfg.adaptor, cameraCfg.deviceID, cameraCfg.fallbackFormat);
     catch
-        disp('Pointgrey/FLIR camera not available or acquisition mode needs to be changed in imager.m>imager_OpeningFcn() ...')
+        disp(['Camera not available through the ''' cameraCfg.adaptor ''' adaptor, or the format needs to be changed in imager/cameraConfig.m ...'])
         rethrow(ME)
     end
 end
  
 src = getselectedsource(vid);
-
-if isprop(src,'FrameRate')
-    src.FrameRate = FPS;
-    if src.FrameRate ~= FPS
-        error('Framerate could not be set to proper value. Please restart Matlab and try again.')
-    end
-elseif isprop(src,'FrameRatePercentage')
-    src.FrameRatePercentage = 100;
-    disp('FrameRatePercentage was set to 100% but FrameRate could not set directly. Please verify that the frame rate of acquisition is 30hz or the rate requested.')
-end
-srcinfo=propinfo(src,'Shutter');
-if srcinfo.ConstraintValue(2)<30
-    error('Shutter could not be set to 30ms. Please restart Matlab and try again.')
-end
-src.ShutterMode = 'Manual';
-src.Shutter=30;
-src.Gain=0;
-src.GammaMode = 'Manual';
-if isprop(src,'SharpnessMode')
-    src.SharpnessMode = 'Manual';
-end
-src.ExposureMode = 'Manual';
-src.Strobe2 = 'Off';
-triggerconfig(vid, 'manual')
-vid.FramesPerTrigger = (str2num(get(findobj('Tag','timetxt'),'String')))*src.Shutter ;
+setupCamera(vid, src, cameraCfg);   % binning, ROI, exposure, gain, frame rate, strobe line, manual trigger
+vidRes0 = vid.VideoResolution;       % [width height] after binning/ROI
+ROIcrop = [0 0 vidRes0(2) vidRes0(1)];   % [x y rows cols] used by Grab Single; follows the camera instead of a hard-coded 300x480
 
 %% Open image in existing window
 
