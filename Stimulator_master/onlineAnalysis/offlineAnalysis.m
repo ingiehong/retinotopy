@@ -1,4 +1,4 @@
-function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename, signalPolarity)
+function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename, signalPolarity, detrendMode)
 % Imitates the function of onlineAnalysis, on recorded files 
 % signalPolarity: 'negative' (intrinsic imaging, default: frames are negated, as the old
 % hard-coded 2^16-x inversion did) or 'positive' (GCaMP: frames are used as recorded).
@@ -17,7 +17,8 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename,
  
 %if get(GUIhandles.main.analysisFlag,'value')
     
-    if nargin < 5, signalPolarity = 'negative'; end
+    if nargin < 5 || isempty(signalPolarity), signalPolarity = 'negative'; end
+    if nargin < 6 || isempty(detrendMode), detrendMode = 'none'; end   % 'none' | 'linear': remove each pixel's linear trend (bleaching) before the F1 projection
     signalSign = signalPolaritySign(signalPolarity); % -1 intrinsic, +1 GCaMP
     disp(['Starting offline phase analysis...'])
     Grabtimes = syncInfo.acqSyncs;
@@ -46,6 +47,10 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename,
         end
 
         acc = acc + exp(1i*frameang(k)).*img;
+        if strcmpi(detrendMode,'linear')   % sums for the per-pixel linear trend (bleaching)
+            if k == 1, Sx = zeros(size(img)); Stx = zeros(size(img)); end
+            Sx = Sx + img; Stx = Stx + framest(k)*img;
+        end
         
         if framest(k)+Disptimes(1)>Disptimes(l+1) % If in next trial,
             l = l+1;
@@ -76,7 +81,16 @@ function [F1, avgvideo] = offlineAnalysis(c,syncInfo, Tens, output_tif_filename,
     
     F0 = signalSign*double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % same sign as img
     
-    acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
+    if strcmpi(detrendMode,'linear')
+        % remove the fitted linear trend a + b*t of every pixel from the F1 projection in closed form
+        N = k-1; t = framest(1:N); e = exp(1i*frameang(1:N));
+        T1 = sum(t); T2 = sum(t.^2); E0 = sum(e); E1 = sum(t.*e);
+        b = (N*Stx - T1*Sx) / (N*T2 - T1^2);
+        a = (Sx - b*T1) / N;
+        acc = acc - a*E0 - b*E1;
+    else
+        acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
+    end
     acc = 2*acc ./ (k-1);
 
 % 

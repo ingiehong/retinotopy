@@ -1,4 +1,4 @@
-function generatekret(anim,AzExpt,AltExpt,LP,grab,signalPolarity)
+function generatekret(anim,AzExpt,AltExpt,LP,grab,signalPolarity,opts)
 % Revision 7-Oct.-2018 by G. Hwang & I. Hong
 % Modified output directory structure 
 % Retinotopic analysis should be run from directory where all files are
@@ -29,6 +29,8 @@ LPdim = size(LP);
 HP = zeros(LPdim);
 if nargin < 5, grab = []; end
 if nargin < 6, signalPolarity = ''; end % resolved from the analyzer below
+if nargin < 7 || isempty(opts), opts = struct; end
+opts = defaultOpts(opts);   % opts.seamAction ('error'|'warn'), opts.expectedDelayDeg ([] = from polarity), opts.f1mSuffix ('' or '_offline')
 
 %% process data for various LP smoothing
 for x=1:length(LP)
@@ -76,19 +78,24 @@ for x=1:length(LP)
         error('generatekret:signalPolarity','signalPolarity must be ''negative'' (intrinsic) or ''positive'' (GCaMP), got ''%s''',signalPolarity);
     end
     fprintf('generatekret: signal polarity ''%s''\n', signalPolarity);
+    expectedDelay = opts.expectedDelayDeg;   % centre of the half-cycle window the pooled response delay is folded into
+    if isempty(expectedDelay)
+        if strcmpi(signalPolarity,'positive'), expectedDelay = 20; else, expectedDelay = 60; end   % deg of cycle: GCaMP ~0.5 s, intrinsic ~3 s at an 18 s period
+    end
 
     
     %% GET PROCESSED DATA
     try 
-        filename=strcat(Anim,'_u',Expt1,'.mat');
+        filename=strcat(Anim,'_u',Expt1,opts.f1mSuffix,'.mat');
         filepath=fullfile(ProcessedDir,filename);
         S = load(filepath);  %Returns the contents in the .mat under the structure S
     catch
-        filename=strcat(Anim,'_',Expt1,'.mat');
+        filename=strcat(Anim,'_',Expt1,opts.f1mSuffix,'.mat');
         filepath=fullfile(ProcessedDir,filename);
         S = load(filepath);  %Returns the contents in the .mat under the structure S
     end
     f1m = applySignalPolarity(S,signalPolarity,filepath);    %f1m is a cell array with images from each condition
+    repeatCoh = repeatCoherence(S,filepath);                   %[] unless per-trial F1 (f1trials) was saved
     
     %one axes hack
     if length(f1m) == 2
@@ -138,9 +145,10 @@ for x=1:length(LP)
     end
     %% run processkret
     
-    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1m,bw,L,H);
+    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1m,bw,L,H,expectedDelay);
     horiz_delay_pooled = delayPool.hor;
-    checkPhaseSeam(kmap_hor,magS.hor,horiz_delay_pooled,ExptID,signalPolarity);
+    checkPhaseSeam(kmap_hor,magS.hor,horiz_delay_pooled,ExptID,signalPolarity,opts.seamAction);
+    repeatCohHor = repeatCoh;
     
     xsize = getParamValue(Analyzer,'x_size'); % stimulus width in deg (kept in kret; display limits only)
     horiz_s_freq = getParamValue(Analyzer,'s_freq'); % cycles per visual degree: one stimulus cycle spans 1/s_freq deg
@@ -458,16 +466,17 @@ end
 %% GET PROCESSED DATA
 
     try 
-        filename=strcat(Anim,'_u',Expt1,'.mat');
+        filename=strcat(Anim,'_u',Expt1,opts.f1mSuffix,'.mat');
         filepath=fullfile(ProcessedDir,filename);
         S = load(filepath);  %Returns the contents in the .mat under the structure S
     catch
-        filename=strcat(Anim,'_',Expt1,'.mat');
+        filename=strcat(Anim,'_',Expt1,opts.f1mSuffix,'.mat');
         filepath=fullfile(ProcessedDir,filename);
         S = load(filepath);  %Returns the contents in the .mat under the structure S
     end
 
     f1m = applySignalPolarity(S,signalPolarity,filepath);    %f1m is a cell array with images from each condition
+    repeatCoh = repeatCoherence(S,filepath);                   %[] unless per-trial F1 (f1trials) was saved
     %one axes hack
     if length(f1m) == 2
         f1m{3} = f1m{2};
@@ -491,9 +500,10 @@ end
     end
     
 %% RUN PROCESS KRET
-    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1m,bw,L,H);
+    [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1m,bw,L,H,expectedDelay);
     vert_delay_pooled = delayPool.vert;
-    checkPhaseSeam(kmap_vert,magS.vert,vert_delay_pooled,ExptID,signalPolarity);
+    checkPhaseSeam(kmap_vert,magS.vert,vert_delay_pooled,ExptID,signalPolarity,opts.seamAction);
+    repeatCohVert = repeatCoh;
     
     ysize = getParamValue(Analyzer,'y_size'); % stimulus height in deg (kept in kret; display limits only)
     vert_s_freq = getParamValue(Analyzer,'s_freq'); % cycles per visual degree: one stimulus cycle spans 1/s_freq deg
@@ -935,7 +945,11 @@ end
             'horiz_s_freq', horiz_s_freq,...
             'vert_s_freq', vert_s_freq,...
             'deg_per_cycle_hor', 1/horiz_s_freq,...
-            'deg_per_cycle_vert', 1/vert_s_freq);
+            'deg_per_cycle_vert', 1/vert_s_freq,...
+            'expected_delay_deg', expectedDelay,...
+            'horiz_repeat_coherence', repeatCohHor,...
+            'vert_repeat_coherence', repeatCohVert,...
+            'opts', opts);
   
         AnalDir1 = [fullfile(SaveDir,'Kmaps') filesep];
         if iscell(AnalDir1)
@@ -962,7 +976,7 @@ if isempty(k)
 end
 v = Analyzer.P.param{k}{3};
 
-function checkPhaseSeam(kmap_phase,mag,delay_pooled,ExptID,signalPolarity)
+function checkPhaseSeam(kmap_phase,mag,delay_pooled,ExptID,signalPolarity,seamAction)
 % Diagnostic for the two ways a map ends up half a cycle off (wrong signal polarity,
 % or a delay fold on the wrong side): the +/-180 deg phase wrap then runs through the
 % responsive cortex instead of sitting at the screen edge.
@@ -970,20 +984,29 @@ hi = mag >= prctile(mag(:),80); % responsive (top 20%) pixels
 seamFrac = mean(abs(kmap_phase(hi)) > 150);
 fprintf('generatekret: %s pooled delay %.1f deg of cycle; %.1f%% of responsive pixels within 30 deg of the +/-180 deg phase wrap\n',ExptID,delay_pooled,100*seamFrac);
 if seamFrac > 0.1
-    warning('generatekret:seam',['%s: %.0f%% of the responsive pixels lie within 30 deg of the +/-180 deg phase wrap, ' ...
+    msg = sprintf(['%s: %.0f%% of the responsive pixels lie within 30 deg of the +/-180 deg phase wrap, ' ...
         'so the wrap seam probably runs through the visual cortex. Check signalPolarity (currently ''%s'': ' ...
-        'use ''positive'' for GCaMP and ''negative'' for intrinsic imaging) and the response delay (%.1f deg).'], ...
+        'use ''positive'' for GCaMP and ''negative'' for intrinsic imaging) and the response delay (%.1f deg). ' ...
+        'Pass opts.seamAction = ''warn'' to generatekret/getAreaBorders to continue anyway.'], ...
         ExptID,100*seamFrac,signalPolarity,delay_pooled);
+    if strcmpi(seamAction,'warn')
+        warning('generatekret:seam','%s',msg);
+    else
+        error('generatekret:seam','%s',msg);
+    end
 end
 
 function f1m = applySignalPolarity(S,signalPolarity,filepath)
 % Give f1m the sign expected downstream: Gprocesskret_generatekmaps takes angle(-f1), the
 % convention for a response that was made positive-going when F1 was computed.
+% The polarity requested by the caller always wins; kret.signalPolarity records it.
 f1m = S.f1m;
-if isfield(S,'signalPolarity')
+if isfield(S,'signalPolarity') && ~isempty(S.signalPolarity)
     % written by the polarity-aware onlineAnalysis/offlineAnalysis: the frame sign was applied once there
     if ~strcmpi(S.signalPolarity,signalPolarity)
-        warning('generatekret:signalPolarity','%s records signalPolarity ''%s'' but ''%s'' was requested; using the file as stored',filepath,S.signalPolarity,signalPolarity);
+        warning('generatekret:signalPolarity',['%s records signalPolarity ''%s'' but ''%s'' was requested: ' ...
+            'the stored maps are negated so that the requested polarity applies'],filepath,S.signalPolarity,signalPolarity);
+        f1m = cellfun(@(x) -x,f1m,'UniformOutput',false);
     end
 elseif strcmpi(signalPolarity,'positive')
     % legacy f1m: the frames were always inverted (2^16-x, the intrinsic convention), which leaves a
@@ -991,3 +1014,24 @@ elseif strcmpi(signalPolarity,'positive')
     f1m = cellfun(@(x) -x,f1m,'UniformOutput',false);
 end
 
+function opts = defaultOpts(opts)
+% Fill the optional settings of generatekret.
+if ~isfield(opts,'seamAction') || isempty(opts.seamAction), opts.seamAction = 'error'; end   % 'error' | 'warn'
+if ~isfield(opts,'expectedDelayDeg'), opts.expectedDelayDeg = []; end                          % deg of cycle; [] = 20 (positive) / 60 (negative)
+if ~isfield(opts,'f1mSuffix'), opts.f1mSuffix = ''; end                                        % '' = online f1m; '_offline' = offlineAnalysis_script output
+
+function coh = repeatCoherence(S,filepath)
+% Phase coherence across repeats, per pixel: |sum_r F1_r| / sum_r |F1_r| (1 = identical phase in
+% every repeat, 0 = random). Needs the per-trial F1 saved as f1trials{cond,rep}; [] otherwise.
+coh = [];
+if ~isfield(S,'f1trials') || isempty(S.f1trials), return, end
+nc = size(S.f1trials,1);
+coh = zeros(size(S.f1trials{1,1}));
+for c = 1:nc
+    reps = S.f1trials(c,:); reps = reps(~cellfun(@isempty,reps));
+    v = zeros(size(coh)); m = zeros(size(coh));
+    for r = 1:numel(reps), v = v + reps{r}; m = m + abs(reps{r}); end
+    coh = coh + abs(v)./max(m,eps)/nc;
+end
+magsum = abs(S.f1m{1}); hi = magsum >= prctile(magsum(:),80);
+fprintf('generatekret: %s repeat coherence (|vector sum|/|scalar sum|, top-20%% pixels): median %.2f, 10th percentile %.2f\n', filepath, median(coh(hi)), prctile(coh(hi),10));

@@ -1,12 +1,13 @@
 function onlineAnalysis(c,r,syncInfo)
 
-global Tens looperInfo F1 GUIhandles Mstate
+global Tens looperInfo F1 F1trials GUIhandles Mstate
  
 if get(GUIhandles.main.analysisFlag,'value')
     
     disp(['Starting online phase analysis...'])
     if isfield(Mstate,'signalPolarity'), signalPolarity = Mstate.signalPolarity; else, signalPolarity = 'negative'; end
     signalSign = signalPolaritySign(signalPolarity); % -1 intrinsic, +1 GCaMP (see signalPolaritySign.m)
+    if isfield(Mstate,'detrend') && ~isempty(Mstate.detrend), detrendMode = Mstate.detrend; else, detrendMode = 'none'; end % 'none' | 'linear' (bleaching)
     Grabtimes = syncInfo.acqSyncs;
     %Stimulus starts on 2nd sync, and ends on the second to last.  
     Disptimes = syncInfo.dispSyncs(2:end-2) 
@@ -31,6 +32,10 @@ if get(GUIhandles.main.analysisFlag,'value')
         end
 
         acc = acc + exp(1i*frameang(k)).*img;
+        if strcmpi(detrendMode,'linear')   % sums for the per-pixel linear trend (bleaching)
+            if k == 1, Sx = zeros(size(img)); Stx = zeros(size(img)); end
+            Sx = Sx + img; Stx = Stx + framest(k)*img;
+        end
 
         if framest(k)+Disptimes(1)>Disptimes(l+1)
             l = l+1;
@@ -72,7 +77,16 @@ if get(GUIhandles.main.analysisFlag,'value')
     
     F0 = signalSign*double(mean(Tens(:,:,fidx(1):fidx(2)),3)); % same sign as img
  
-    acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
+    if strcmpi(detrendMode,'linear')
+        % remove the fitted linear trend a + b*t of every pixel from the F1 projection in closed form
+        N = k-1; t = framest(1:N); e = exp(1i*frameang(1:N));
+        T1 = sum(t); T2 = sum(t.^2); E0 = sum(e); E1 = sum(t.*e);
+        b = (N*Stx - T1*Sx) / (N*T2 - T1^2);
+        a = (Sx - b*T1) / N;
+        acc = acc - a*E0 - b*E1;
+    else
+        acc = acc - F0*sum(exp(1i*frameang)); %Subtract f0 leakage
+    end
     acc = 2*acc ./ (k-1);
 
 
@@ -81,6 +95,7 @@ if get(GUIhandles.main.analysisFlag,'value')
     else
         F1{c} = F1{c} + acc;
     end
+    F1trials{c,r} = acc;   % per-trial F1 is kept so that repeat coherence can be assessed offline
 
     nc = length(looperInfo.conds);
     figure(99)

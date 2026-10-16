@@ -1,6 +1,6 @@
 function saveOnlineAnalysis
 
-global F1 GUIhandles Mstate
+global F1 F1trials GUIhandles Mstate
 
 if get(GUIhandles.main.analysisFlag,'value')
 
@@ -19,7 +19,9 @@ if get(GUIhandles.main.analysisFlag,'value')
     %fname = [fname  '_' sprintf('%03d',trial)];
     % record how the frames were signed so that generatekret does not re-apply a polarity correction
     if isfield(Mstate,'signalPolarity'), signalPolarity = Mstate.signalPolarity; else, signalPolarity = 'negative'; end
-    save(fname,'f1m','signalPolarity')
+    f1trials = F1trials; nrep = size(f1trials,2);   % per-trial F1 for repeat-coherence checks (generatekret reports it)
+    if isfield(Mstate,'detrend'), detrendMode = Mstate.detrend; else, detrendMode = 'none'; end
+    save(fname,'f1m','f1trials','nrep','signalPolarity','detrendMode')
 
 %     A = get(GUIhandles.main.animal,'string');
 % %    A = 'A71';

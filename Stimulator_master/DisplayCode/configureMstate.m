@@ -22,6 +22,8 @@ Mstate.syncSize = 51;  %Size of the screen sync in cm
 %   'negative' = intrinsic signal imaging (reflectance decreases on response; the historical default)
 %   'positive' = fluorescence imaging such as GCaMP (signal increases on response)
 Mstate.signalPolarity = 'negative';
+% Per-pixel linear detrend of each trial before the F1 projection ('none' or 'linear'); 'linear' removes bleaching
+Mstate.detrend = 'none';
 
 Mstate.running = 0;
 

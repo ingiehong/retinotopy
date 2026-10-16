@@ -1,4 +1,4 @@
-function [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1,bw,hl,hh)
+function [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delayPool] = Gprocesskret_generatekmaps(f1,bw,hl,hh,expectedDelayDeg)
 
 %f1 is a cell containing the result from 'f1meanimage'.  varargin is the optional
 %filter kernel.  Each of the images are smoothed with a Gaussian with a std 
@@ -8,6 +8,8 @@ function [kmap_hor kmap_vert delay_hor delay_vert magS ang0 ang1 ang2 ang3 delay
 %each pixel unwrapped to within +/-90 deg of the pooled delay of the responsive
 %pixels (diagnostic; the same values are used for kmap_hor/kmap_vert).
 %delayPool.hor/.vert: the pooled delay (degrees) the per-pixel delays were unwrapped to.
+
+if nargin < 5 || isempty(expectedDelayDeg), expectedDelayDeg = 45; end   % centre of the half-cycle delay window (deg of cycle)
 
 ang1 = f1{2}; %two axes
 ang3 = f1{4}; 
@@ -82,8 +84,8 @@ delay_vert = angle(exp(1i*ang1) + exp(1i*ang3));
 %flipped by pi and its retinotopy shifted by half a cycle.  Instead, pool the
 %delay over the responsive pixels (axial circular mean, which is immune to the
 %pi ambiguity) and bring every pixel to within +/-pi/2 of that pooled delay.
-[delay_hor delayPool.hor] = foldDelay(delay_hor,magS.hor);
-[delay_vert delayPool.vert] = foldDelay(delay_vert,magS.vert);
+[delay_hor delayPool.hor] = foldDelay(delay_hor,magS.hor,expectedDelayDeg*pi/180);
+[delay_vert delayPool.vert] = foldDelay(delay_vert,magS.vert,expectedDelayDeg*pi/180);
 
 %Use delay vector to calculate retinotopy.
 kmap_hor = .5*(angle(exp(1i*(ang0-delay_hor))) - angle(exp(1i*(ang2-delay_hor))));
@@ -102,15 +104,17 @@ delayPool.vert = delayPool.vert*180/pi;
 % y = bw.*floor(100/360*(-kmap_vert+180))+1;
 % sh = shadow(x,y,100,100);
 
-function [delay dpool] = foldDelay(raw,mag)
+function [delay dpool] = foldDelay(raw,mag,dexp)
 %raw: per-pixel delay estimate in (-pi,pi], ambiguous by pi.  mag: response magnitude.
+%dexp: expected delay (rad); the pooled delay is placed in the half circle centred on it.
 hi = mag >= prctile(mag(:),80);           %responsive pixels
 dpool = angle(mean(exp(2i*raw(hi))))/2;   %axial mean of the responsive pixels, in (-pi/2,pi/2]
-%The response lags the stimulus, so place the pooled delay in [-pi/4,3*pi/4):
-%small negative values are noise around a near-zero delay (GCaMP), values up
-%to 135 deg of the cycle cover the slow intrinsic signal.
-if dpool < -pi/4
-    dpool = dpool + pi;
+dpool = dpool - pi*round((dpool-dexp)/pi);%nearest representative within +/-pi/2 of the expected delay
+margin = pi/2 - abs(dpool-dexp);          %distance to the edge of the window
+if margin < 20*pi/180
+    warning('Gprocesskret:delayWindow',['pooled delay %.1f deg of cycle is within %.0f deg of the edge of the window ' ...
+        'centred on the expected delay %.1f deg; if the true delay is on the other side the whole map is half a cycle off. ' ...
+        'Set opts.expectedDelayDeg in generatekret to the delay you expect for this indicator and period.'], ...
+        dpool*180/pi, margin*180/pi, dexp*180/pi);
 end
 delay = raw - pi*round((raw-dpool)/pi);   %each pixel to within +/-pi/2 of the pooled delay
-
