@@ -1,4 +1,4 @@
-function getAreaBorders(anim,alt_expt,azi_expt,grab,signalPolarity,LP)
+function getAreaBorders(anim,alt_expt,azi_expt,grab,signalPolarity,LP,opts)
 % This script will generate a variety of maps that are useful, including response 
 % magnitude maps, segmentation of area borders, and overlays of retinotopy, blood 
 % vessel images, and area borders. 
@@ -33,12 +33,8 @@ if nargin < 3 || isempty(azi_expt)
     azi_expt='000_005'; % R44_u000_005.analyzer: altazimuth = 'azimuth'
 end
 
-if nargin < 4 || isempty(grab)
-    grabfiles=dir('grab*.mat');
-    if isempty(grabfiles)
-        error('getAreaBorders:grab','no grab*.mat anatomy file in %s; pass one as the 4th argument',pwd);
-    end
-    grab=grabfiles(1).name;
+if nargin < 4
+    grab = [];   % generatekret uses the first grab*.mat in the folder, else the mean of the first raw frames
 end
 
 if nargin < 5
@@ -52,6 +48,7 @@ end
 %% Set Save Directory & Low Pass Values
 
 SaveDir = [ pwd filesep];
+if nargin < 7, opts = struct; end   % passed to generatekret (seamAction, expectedDelayDeg, f1mSuffix)
 if nargin < 6 || isempty(LP)
     LP = .1; % to run different low pass values, worth trying anything from 0 to 2
 end
@@ -63,7 +60,7 @@ ExptID = strcat(anim,azi,alt)
 %% Generate and load kmaps for vertical and horizontal retinotopy
 
 % if you have kmaps you can skip this step
-generatekret(anim,azi_expt,alt_expt,LP,grab,signalPolarity) % this script also generates overlays of azi/alt & blood vessels as well as resp mag maps
+generatekret(anim,azi_expt,alt_expt,LP,grab,signalPolarity,opts) % this script also generates overlays of azi/alt & blood vessels as well as resp mag maps
 
 dimLP = size(LP);
  
@@ -281,7 +278,9 @@ for iLP = 1:dimLP(2);
     
     %% ID redundant patches and split them (criterion #2)
     
+    im_before_split = im;
     im = splitPatchesX(im,kmap_hor,kmap_vert,AreaInfo.kmap_rad,pixpermm);
+    im_split = im;
     
     %Remake the border with thinning
     bordr = imbound-im;
@@ -292,6 +291,10 @@ for iLP = 1:dimLP(2);
     im = bwlabel(1-bordr,4);
     im(find(im == 1)) = 0;
     im = sign(im);
+    % territory that splitPatchesX removed must not be handed to the neighbouring patches by the re-thinning;
+    % carve it out before the opening so the opening also clears any slivers the carve leaves behind
+    removed = removedPatchMask(im_before_split, im_split);
+    im(imdilate(removed, strel('disk',1,0))) = 0;
     SE = strel('disk',2);
     im = imopen(im,SE);
     
@@ -443,6 +446,13 @@ for iLP = 1:dimLP(2);
     contour(xdom,ydom,im,[.5 .5],'k','LineWidth',2)
     
     
+    %% SAVE THE SEGMENTATION RESULT (masks, signs, areas) next to the figures
+    lab = bwlabel(im,4); npatch = max(lab(:));
+    patchArea_mm2 = arrayfun(@(q) nnz(lab==q)/pixpermm^2, 1:npatch);
+    segfile = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_segmentation.mat');
+    save(segfile,'im','lab','npatch','patchArea_mm2','patchSign','areaSign','VFS','imseg','imbound','kmap_hor','kmap_vert','kmap_hor_orig','kmap_vert_orig','AreaInfo','JacIm','prefAxisMF','Distort','threshSeg','pixpermm','CoMxy','V1id','fuseflag','xdom','ydom');
+    fprintf('Saved %d patches (%s mm^2) to %s\n', npatch, mat2str(round(patchArea_mm2,2)), segfile);
+
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.fig')
     saveas(gcf,overlaysFig,'fig');
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.tif');

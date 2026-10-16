@@ -1,4 +1,4 @@
-function getAreaBorders_Ingie(anim,alt_expt,azi_expt,grab,signalPolarity,LP)
+function getAreaBorders_Ingie(anim,alt_expt,azi_expt,grab,signalPolarity,LP,targetPixPerMm,opts)
 % Revision 7-Oct.-2018 by G. Hwang & I. Hong
 % Adjusted pixels per mm to reflect current setup of 96.8 mm/pixel
 % Automatically creates PowerPoint files of figures created. This feature
@@ -11,6 +11,9 @@ function getAreaBorders_Ingie(anim,alt_expt,azi_expt,grab,signalPolarity,LP)
 % grab: anatomy file for the overlays (MAT file with grab.img); default: see generatekret
 % signalPolarity: 'negative' (intrinsic imaging, default) or 'positive' (GCaMP); see generatekret
 % LP: low-pass sigma(s) in pixels, default 2; worth trying anything from 0 to 2
+% targetPixPerMm: resample the maps to this resolution before segmenting (default 39, the resolution
+%   the structuring elements were tuned for; 0 keeps the native 96.8 px/mm)
+% opts: struct passed to generatekret: seamAction 'error'|'warn', expectedDelayDeg, f1mSuffix
 % Example code to run script getAreaBorders_Ingie('180817','000_000', '000_001')
 % getAreaBorders_Ingie('180817','000_002', '000_003')
 % getAreaBorders_Ingie('230901','000_000', '000_001', '', 'positive', [1 2]) % GCaMP data
@@ -18,7 +21,9 @@ function getAreaBorders_Ingie(anim,alt_expt,azi_expt,grab,signalPolarity,LP)
 
 if nargin < 4, grab = []; end
 if nargin < 5, signalPolarity = []; end
-if nargin < 6 || isempty(LP), LP = 2; end %[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
+if nargin < 6 || isempty(LP), LP = 2; end
+if nargin < 7 || isempty(targetPixPerMm), targetPixPerMm = 39; end % px/mm the maps are resampled to before segmentation (the Garrett 2014 morphology is tuned for 39); 0 = native
+if nargin < 8, opts = struct; end                                  % passed to generatekret (seamAction, expectedDelayDeg, f1mSuffix) %[.5 .75 1 1.5 2]; % to run different low pass values, worth trying anything from 0 to 2
 %LP = [.5 .75 1 1.5 2]
 [token azi ] = strtok(azi_expt,'_');
 [token alt ] = strtok(alt_expt,'_');
@@ -28,7 +33,7 @@ SaveDir = [ pwd filesep ]; % ExptID filesep
 %% Generate and load kmaps for vertical and horizontal retinotopy
 
 % If you have kmaps you can skip this step
-generatekret(anim,azi_expt,alt_expt,LP,grab,signalPolarity) % This script generates overlays of azi/alt & blood vessels as well as resp mag maps
+generatekret(anim,azi_expt,alt_expt,LP,grab,signalPolarity,opts) % This script generates overlays of azi/alt & blood vessels as well as resp mag maps
 
 dimLP = size(LP);
 
@@ -39,6 +44,19 @@ for iLP = 1:dimLP(2);
     load(kmapfilename)
     kmap_hor_orig= -(kret.kmap_hor); % negative to correct values 
     kmap_vert_orig=kret.kmap_vert;
+    anatomypic_orig = kret.AnatomyPic;
+    pixpermm_native = 96.8; % camera pixels per mm at the native resolution (2018 GS3 setup, 4x4 binned 480x300); adjust for other cameras
+    if targetPixPerMm > 0 && abs(pixpermm_native/targetPixPerMm - 1) > 0.05
+        sc = targetPixPerMm/pixpermm_native;
+        kmap_hor_orig = imresize(kmap_hor_orig, sc, 'bilinear');
+        kmap_vert_orig = imresize(kmap_vert_orig, sc, 'bilinear');
+        anatomypic_orig = imresize(anatomypic_orig, sc, 'bilinear');
+        pixpermm = targetPixPerMm;
+        fprintf('getAreaBorders_Ingie: maps resampled from %.1f to %.1f px/mm (the segmentation morphology is tuned for 39 px/mm)\n', pixpermm_native, pixpermm);
+    else
+        pixpermm = pixpermm_native;
+    end
+    anatomypic_orig = min(max(round(anatomypic_orig),1),64); % colormap indices 1..64 (kret.AnatomyPic is stored that way)
 
     %% Rotate & Up/Down Sample Maps
     % obsolete comments: The images in Garrett et al '14 were collected at 39 pixels/mm.  It is
@@ -60,7 +78,7 @@ for iLP = 1:dimLP(2);
     kmap_hor = kmap_hor_orig; %Ingie added
     kmap_vert = kmap_vert_orig; % Ingie added
 
-    pixpermm = 96.8; %/2; % 39 was in original code
+    % pixpermm is set above (native 96.8 or the resampling target)
 
     %% Compute visual field sign map
     
@@ -249,7 +267,9 @@ for iLP = 1:dimLP(2);
     
     %% ID redundant patches and split them (criterion #2)
     
+    im_before_split = im;
     im = splitPatchesX(im,kmap_hor,kmap_vert,AreaInfo.kmap_rad,pixpermm);
+    im_split = im;
     
     %Remake the border with thinning
     bordr = imbound-im;
@@ -260,6 +280,10 @@ for iLP = 1:dimLP(2);
     im = bwlabel(1-bordr,4);
     im(find(im == 1)) = 0;
     im = sign(im);
+    % territory that splitPatchesX removed must not be handed to the neighbouring patches by the re-thinning;
+    % carve it out before the opening so the opening also clears any slivers the carve leaves behind
+    removed = removedPatchMask(im_before_split, im_split);
+    im(imdilate(removed, strel('disk',1,0))) = 0;
     SE = strel('disk',2);
     im = imopen(im,SE);
     
@@ -344,7 +368,7 @@ for iLP = 1:dimLP(2);
     % blood vessel picture
     subplot(1,3,1);
 %    anatomypic = rot90(rot90(rot90(kret.AnatomyPic))); %removed one rot90()
-    anatomypic = kret.AnatomyPic;
+    anatomypic = anatomypic_orig;
     imagesc(xdom,ydom,anatomypic) 
     colormap gray
     hold on
@@ -412,6 +436,13 @@ for iLP = 1:dimLP(2);
     hold on;
     contour(xdom,ydom,im,[.5 .5],'k','LineWidth',2)
    
+    %% SAVE THE SEGMENTATION RESULT (masks, signs, areas) next to the figures
+    lab = bwlabel(im,4); npatch = max(lab(:));
+    patchArea_mm2 = arrayfun(@(q) nnz(lab==q)/pixpermm^2, 1:npatch);
+    segfile = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_segmentation.mat');
+    save(segfile,'im','lab','npatch','patchArea_mm2','patchSign','areaSign','VFS','imseg','imbound','kmap_hor','kmap_vert','kmap_hor_orig','kmap_vert_orig','AreaInfo','JacIm','prefAxisMF','Distort','threshSeg','pixpermm','CoMxy','V1id','fuseflag','xdom','ydom');
+    fprintf('Saved %d patches (%s mm^2) to %s\n', npatch, mat2str(round(patchArea_mm2,2)), segfile);
+
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.fig')
     saveas(gcf,overlaysFig,'fig');
     overlaysFig = strcat(SaveDir,ExptID,'_','LP',num2str(LP(iLP)),'_Overlays.tif');

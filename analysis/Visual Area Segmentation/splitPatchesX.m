@@ -151,7 +151,8 @@ centerPatchI = getCenterPatch(kmap_radI,imI,R);
 clear spCov JacCoverage ActualCoverage MagFac
 
 V1q = getV1id(im); %largest patch = V1 (same labelling as imlab); reported below but never removed
-tolCov = 1.05;     %criterion 2: redundant when the Jacobian-integrated coverage exceeds the actual coverage by this factor
+tolCov = 1.1;      %criterion 2 (Garrett et al. 2014: 'slightly above unity'): redundant when the Jacobian-integrated coverage exceeds the actual coverage by this factor
+minArea_mm2 = 0.05; %patches smaller than this are dropped (replaces the old visual-coverage floor, which deleted real cortex and handed it to neighbours)
 
 for q = 1:length(imdom)-1 %loop through each patch ("visual area")
 
@@ -169,16 +170,20 @@ for q = 1:length(imdom)-1 %loop through each patch ("visual area")
 
     CovOverlap = JacCoverage(q)/ActualCoverage(q);
 
-    % JacCoverage/(pi*R^2) < .01 gets rid of the areas with practically no screen coverage
-    redundant = CovOverlap > tolCov || JacCoverage(q)/(pi*R^2) < .01;
-    if redundant && q == V1q
-        decision = 'kept (V1 is never removed)';
-    elseif redundant
-        decision = 'removed';
+    % Criterion 2 never deletes cortex: a redundant patch has already been split along its eccentricity
+    % minima above; here the ratio is only reported. Only patches below the minimum area are dropped.
+    area_mm2 = nnz(imlab == q)/pixpermm^2;
+    if area_mm2 < minArea_mm2 && q ~= V1q
+        decision = sprintf('removed (%.3f mm^2 < %.2f mm^2)', area_mm2, minArea_mm2);
         id = find(imlab == q);
         im(id) = 0;
+    elseif CovOverlap > tolCov
+        decision = sprintf('kept, flagged redundant (ratio > %.2f)', tolCov);
     else
         decision = 'kept';
+    end
+    if q == V1q && CovOverlap > 1.3
+        warning('splitPatchesX:V1','the largest patch (V1) has a coverage ratio of %.2f: the retinotopic maps are probably wrong (signal polarity or delay)', CovOverlap);
     end
     fprintf('splitPatchesX: patch %2d of %d: Jacobian coverage %7.1f deg^2, actual coverage %7.1f deg^2, ratio %.3f -> %s\n', ...
         q,length(imdom)-1,JacCoverage(q),ActualCoverage(q),CovOverlap,decision);
