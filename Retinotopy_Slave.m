@@ -10,5 +10,6 @@
 %% Set up the PATH and display settings
 
 addpath(genpath([fileparts(which('Retinotopy_Slave')) filesep 'Stimulator_slave']));
+addpath(fileparts(which('Retinotopy_Slave')));   % repository root, where rigConfig.m lives
 configureDisplay;
 %Screen('Preference', 'SkipSyncTests', 1)

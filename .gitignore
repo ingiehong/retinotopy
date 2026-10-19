@@ -20,3 +20,6 @@ octave-workspace
 
 # Simulink autosave extension
 .autosave
+
+# Rig-specific settings: copy rigConfig_example.m to rigConfig.m on each computer
+rigConfig.m

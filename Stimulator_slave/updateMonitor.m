@@ -67,6 +67,8 @@ switch Mstate.monitor
         
 end
 
+%% rig-specific overrides: rigConfig.m (git-ignored) may set Mstate.screenXcm / screenYcm
+if exist('rigConfig', 'file') == 2, rigConfig; end
 
 Screen('LoadNormalizedGammaTable', screenPTR, bufLUT);  %gamma LUT
 

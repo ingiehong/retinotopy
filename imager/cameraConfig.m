@@ -54,3 +54,6 @@ switch cfg.profile
     otherwise
         error('cameraConfig:profile','unknown camera profile ''%s''',cfg.profile);
 end
+
+%% rig-specific overrides: rigConfig.m (git-ignored, see rigConfig_example.m) may change any cfg field
+if exist('rigConfig', 'file') == 2, rigConfig; end

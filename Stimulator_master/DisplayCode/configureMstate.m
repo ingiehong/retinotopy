@@ -45,3 +45,6 @@ Mstate.analogIN_photodiode_channel='ai1';
 % h = java.net.InetAddress.getLocalHost();
 % ipAddress = char(h.getHostAddress().toString());
 % Mstate.stimulusIDP = ipAddress; 
+
+%% rig-specific overrides: copy rigConfig_example.m (repository root) to rigConfig.m, which git ignores
+if exist('rigConfig', 'file') == 2, rigConfig; end

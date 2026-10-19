@@ -14,6 +14,7 @@ else
 %   ipAddress = char(h.getHostAddress().toString());
 %   rip = ipAddress; 
     rip = '10.16.82.154';
+    if exist('rigConfig', 'file') == 2, rigConfig; end   % rigConfig.m (git-ignored) may set rip, the master computer's address
 end
 
 % close all open serial port objects on the same port and remove

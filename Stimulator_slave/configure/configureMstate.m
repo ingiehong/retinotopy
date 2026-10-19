@@ -16,3 +16,6 @@ Mstate.monitor = 'LIN';  %This should match the default at the master. Otherwise
 Mstate.running = 0;
 
 Mstate.syncSize = 2;  %cm denotes size of photodiode placement on stimulus monitor
+
+%% rig-specific overrides: copy rigConfig_example.m (repository root) to rigConfig.m, which git ignores
+if exist('rigConfig', 'file') == 2, rigConfig; end
