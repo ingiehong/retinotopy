@@ -27,8 +27,8 @@ if exist('cfg', 'var') && isstruct(cfg)           % master: camera profile
     cfg.profile = 'blackflyS';                    % 'blackflyS' or 'grasshopper3'
     cfg.fps = 15;
     cfg.exposure_ms = 30;
-    cfg.binning = 8;                              % 8x8 keeps a 191 s Mono16 trial at 2.2 GB
-    % cfg.roi = [315 225 700 700];                % or 4x4 binning plus a crop around the window
+    cfg.binning = 4;                              % this camera's maximum
+    cfg.roi = [700 700];                          % centred 700x700 px crop (2.8 GB per 191 s Mono16 trial); [x y w h] to place it
 end
 
 if exist('rip', 'var')                            % slave: master (acquisition) computer's IP address

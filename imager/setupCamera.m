@@ -31,8 +31,22 @@ if isprop(src, 'Width') && isprop(src, 'Height')
         end
     end
 end
+if isfield(cfg, 'decimation') && ~isempty(cfg.decimation) && cfg.decimation > 1
+    if isprop(src, 'DecimationHorizontal') && isprop(src, 'DecimationVertical')
+        setGenICam(src, 'DecimationHorizontal', cfg.decimation);
+        setGenICam(src, 'DecimationVertical', cfg.decimation);
+    else
+        fprintf('setupCamera: this camera has no Decimation property; decimation not applied\n');
+    end
+end
 if ~isempty(cfg.roi)
-    vid.ROIPosition = cfg.roi;   % [xoffset yoffset width height] in (binned) pixels
+    roi = cfg.roi;
+    if numel(roi) == 2                       % [width height]: centre the crop on the (binned) frame
+        full = double(vid.VideoResolution);
+        roi = [floor((full(1) - roi(1)) / 2) floor((full(2) - roi(2)) / 2) roi(1) roi(2)];
+    end
+    roi(1:2) = 8 * floor(roi(1:2) / 8); roi(3:4) = 16 * floor(roi(3:4) / 16);   % GenICam offset/size increments
+    vid.ROIPosition = roi;   % [xoffset yoffset width height] in (binned) pixels
 end
 
 %% exposure and gain
@@ -69,8 +83,15 @@ elseif isprop(src, 'FrameRatePercentage')
 else
     actual = NaN;
 end
+link = '';
+if isprop(src, 'DeviceCurrentSpeed'), link = sprintf(', USB link %s', char(src.DeviceCurrentSpeed)); end   % SuperSpeed = USB 3, HighSpeed = USB 2
+if isprop(src, 'DeviceLinkSpeed'), link = sprintf('%s (%.0f MB/s)', link, double(src.DeviceLinkSpeed) / 1e6); end
 if ~isnan(actual) && abs(actual - cfg.fps) > 0.5
-    error('setupCamera:fps', 'requested %.2f fps but the camera reports %.2f fps (bandwidth, exposure or binning limit?)', cfg.fps, actual);
+    r = double(vid.VideoResolution); b = 2; if ~isempty(regexp(vid.VideoFormat, 'Mono8|RGB8|8$', 'once')), b = 1; end
+    warning('setupCamera:fps', ['requested %.2f fps but the camera reports %.2f fps%s. At %d x %d px x %d bytes that is %.0f MB/s: ' ...
+        'a USB 2 port, hub or cable (HighSpeed) limits the Blackfly S to about 25 MB/s. Use a USB 3 (SuperSpeed) port, ' ...
+        'or crop (cfg.roi) or bin more. The DAQ pulses still match the saved frames, so a run is usable, just slower.'], ...
+        cfg.fps, actual, link, r(1), r(2), b, actual * r(1) * r(2) * b / 1e6);
 end
 
 %% strobe line: configured now, enabled only while GrabSave logs frames
@@ -84,5 +105,5 @@ vid.FramesPerTrigger = round(total_time * cfg.fps);
 
 %% report
 res = vid.VideoResolution;
-fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s, %.2f GB of frames per %g s trial\n', ...
-    cfg.profile, cfg.adaptor, vid.VideoFormat, res(1), res(2), actual, cfg.fps, cfg.exposure_ms, mat2str(cfg.binning), cfg.strobeLine, checkFrameMemory(vid, vid.FramesPerTrigger), total_time);
+fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s, %.2f GB of frames per %g s trial%s\n', ...
+    cfg.profile, cfg.adaptor, vid.VideoFormat, res(1), res(2), actual, cfg.fps, cfg.exposure_ms, mat2str(cfg.binning), cfg.strobeLine, checkFrameMemory(vid, vid.FramesPerTrigger), total_time, link);

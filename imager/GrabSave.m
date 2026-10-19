@@ -10,8 +10,8 @@ total_time =  str2num(get(findobj('Tag','timetxt'),'String'));
 N = ceil(total_time*FPS);
 cfg = cameraConfig;
 
-cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
 checkFrameMemory(vid, vid.FramesPerTrigger);   % errors with the fix before a trial that cannot fit in RAM
+cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
 start(vid);
 trigger(vid);
 disp('Video acquisition triggered!')

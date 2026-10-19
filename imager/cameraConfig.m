@@ -11,10 +11,11 @@ function cfg = cameraConfig
 %                    connections, so they are set here every time the imager starts.
 %
 % Notes for the Blackfly S:
-%   * One trial of total_time seconds at cfg.fps frames/s is held in RAM three times (image
-%     acquisition buffer, the returned frames, and the global Tens). Keep one trial below ~2 GB on a
-%     16 GB PC: 4x4 binning gives 1330x1150 px (Mono16: 3.1 GB per 100 s at 15 Hz, too much);
-%     8x8 binning (665x575 px) or 4x4 binning plus an ROI around the cranial window stays safe.
+%   * One trial of total_time seconds at cfg.fps frames/s is held in RAM twice (image acquisition
+%     buffer plus the returned frames; checkFrameMemory refuses a trial that does not fit). On a 16 GB
+%     PC keep one trial below ~3 GB: 4x4 binning gives 1328x1150 px, 3 MB per Mono16 frame, 8.8 GB per
+%     191 s trial at 15 Hz, too much; the BFS-U3-244S8 refuses 8x8 binning, so crop instead:
+%     cfg.roi = [700 700] centres a 700x700 px window on the binned frame (1 MB/frame, 2.8 GB).
 %   * Mono16 (12-bit ADC) is strongly preferred over Mono8 for 2-4 % dF/F signals; use binning
 %     mode 'Sum' so binning adds well depth. Mono16 at 4x4 binning and 15 Hz needs ~46 MB/s, i.e. a
 %     USB 3 port (the rear ports on the QI-Lab PC); on a USB 2 link the frame rate collapses.
@@ -46,9 +47,10 @@ switch cfg.profile
         cfg.deviceID = 1;
         cfg.format = 'Mono16';                            % 12-bit data in 16-bit frames
         cfg.fallbackFormat = 'Mono8';
-        cfg.binning = 8;                                  % hardware binning factor (both axes): 8 -> 665x575 px, 0.76 MB/frame, 2.2 GB per 191 s trial at 15 Hz; 4 (1330x1150 px, 3 MB/frame) needs cfg.roi
+        cfg.binning = 4;                                  % hardware binning factor (both axes); 4 is the BFS-U3-244S8 maximum (1328x1150 px, 3 MB per Mono16 frame)
+        cfg.decimation = [];                              % optional DecimationHorizontal/Vertical factor on top of binning, [] = none
         cfg.binningMode = 'Sum';                          % 'Sum' (adds well depth) or 'Average'
-        cfg.roi = [];                                     % e.g. [200 100 700 700] in binned pixels around the window; [] = full binned frame
+        cfg.roi = [700 700];                              % [width height] centres a crop on the binned frame (1 MB/frame, 2.8 GB per 191 s trial); [x y w h] places it; [] = full frame (8.8 GB per trial, too much for 16 GB)
         cfg.strobeLine = 'Line2';                         % GenICam line used as the frame strobe (red wire)
         cfg.throughputLimit = 380e6;                      % bytes/s; [] leaves the camera default (43e6 is the USB 2 figure)
     otherwise
