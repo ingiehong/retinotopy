@@ -17,36 +17,45 @@ if ~isempty(cfg.binning) && cfg.binning > 1
         fprintf('setupCamera: this camera has no BinningHorizontal/BinningVertical property; binning not applied\n');
     end
 end
-% After a binning change the videoinput keeps reporting the old (unbinned) VideoResolution until its
-% engine refreshes the maximum frame size later ('Resetting the ROI as the max width and height has
-% been updated'). imager.m sizes the preview image from VideoResolution right after this function,
-% so pin the ROI to the frame size the camera itself reports now: VideoResolution follows ROIPosition.
+%% crop (cfg.roi): set on the camera itself (GenICam Width/Height/OffsetX/OffsetY) when it exposes
+% them, because a toolbox ROI (vid.ROIPosition) is thrown away when the toolbox later notices the new
+% maximum frame size after binning ('Resetting the ROI as the max width and height has been updated').
+% [width height] centres the crop on the binned frame; [xoffset yoffset width height] places it.
+if ~isempty(cfg.roi)
+    roi = double(cfg.roi(:)');
+    onDevice = isprop(src, 'Width') && isprop(src, 'Height') && isprop(src, 'OffsetX') && isprop(src, 'OffsetY');
+    if onDevice
+        setGenICam(src, 'OffsetX', 0); setGenICam(src, 'OffsetY', 0);      % offsets to zero so the full size is readable
+        full = [featureMax(src, 'Width') featureMax(src, 'Height')];
+    else
+        full = double(vid.VideoResolution);
+    end
+    if numel(roi) == 2
+        roi = [floor((full(1) - roi(1)) / 2) floor((full(2) - roi(2)) / 2) roi(1) roi(2)];
+    end
+    roi(1:2) = 8 * floor(roi(1:2) / 8); roi(3:4) = 16 * floor(roi(3:4) / 16);   % GenICam offset/size increments
+    roi(3:4) = min(roi(3:4), full - roi(1:2));
+    if onDevice
+        setGenICam(src, 'Width', roi(3)); setGenICam(src, 'Height', roi(4));   % size first, then position
+        setGenICam(src, 'OffsetX', roi(1)); setGenICam(src, 'OffsetY', roi(2));
+    else
+        vid.ROIPosition = roi;
+    end
+end
+
+% The videoinput keeps reporting the old frame size until its engine refreshes the maximum later, but
+% imager.m sizes the preview from VideoResolution right after this function: pin the toolbox ROI to the
+% frame the camera reports now (VideoResolution follows ROIPosition; the later reset lands on the same
+% full, cropped frame).
 if isprop(src, 'Width') && isprop(src, 'Height')
     target = [double(src.Width) double(src.Height)];
-    if ~isequal(vid.VideoResolution, target)
+    if ~isequal(double(vid.VideoResolution), target)
         try
             vid.ROIPosition = [0 0 target];
         catch e
             warning('setupCamera:resolution', 'could not set the ROI to the camera''s %d x %d px frame (%s); the preview may show the frames in one corner', target(1), target(2), e.message);
         end
     end
-end
-if isfield(cfg, 'decimation') && ~isempty(cfg.decimation) && cfg.decimation > 1
-    if isprop(src, 'DecimationHorizontal') && isprop(src, 'DecimationVertical')
-        setGenICam(src, 'DecimationHorizontal', cfg.decimation);
-        setGenICam(src, 'DecimationVertical', cfg.decimation);
-    else
-        fprintf('setupCamera: this camera has no Decimation property; decimation not applied\n');
-    end
-end
-if ~isempty(cfg.roi)
-    roi = cfg.roi;
-    if numel(roi) == 2                       % [width height]: centre the crop on the (binned) frame
-        full = double(vid.VideoResolution);
-        roi = [floor((full(1) - roi(1)) / 2) floor((full(2) - roi(2)) / 2) roi(1) roi(2)];
-    end
-    roi(1:2) = 8 * floor(roi(1:2) / 8); roi(3:4) = 16 * floor(roi(3:4) / 16);   % GenICam offset/size increments
-    vid.ROIPosition = roi;   % [xoffset yoffset width height] in (binned) pixels
 end
 
 %% exposure and gain
@@ -107,3 +116,18 @@ vid.FramesPerTrigger = round(total_time * cfg.fps);
 res = vid.VideoResolution;
 fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s, %.2f GB of frames per %g s trial%s\n', ...
     cfg.profile, cfg.adaptor, vid.VideoFormat, res(1), res(2), actual, cfg.fps, cfg.exposure_ms, mat2str(cfg.binning), cfg.strobeLine, checkFrameMemory(vid, vid.FramesPerTrigger), total_time, link);
+
+function m = featureMax(src, name)
+% Largest value a GenICam integer feature accepts: WidthMax/HeightMax when the camera has them, else
+% the upper end of the property's range, else its current value.
+m = double(src.(name));
+if isprop(src, [name 'Max'])
+    m = double(src.([name 'Max'])); return
+end
+try
+    pinfo = propinfo(src, name);
+    if isnumeric(pinfo.ConstraintValue) && numel(pinfo.ConstraintValue) == 2
+        m = double(pinfo.ConstraintValue(2));
+    end
+catch
+end
