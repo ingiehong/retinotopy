@@ -299,6 +299,7 @@ ROIcrop = [0 0 vidRes0(2) vidRes0(1)];   % [x y rows cols] used by Grab Single; 
 vidRes = vid.VideoResolution;
 nBands = vid.NumberOfBands;
 imagerhandles.hImage = image( handles.videoaxes, zeros(vidRes(2), vidRes(1), nBands) );
+setappdata(imagerhandles.hImage, 'UpdatePreviewWindowFcn', @fitPreviewToFrame);   % keep the axes matched to the frames that actually arrive
 imagerhandles.preview = preview(vid, imagerhandles.hImage);
 
 %preview(vid);
@@ -1838,3 +1839,18 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
+
+function fitPreviewToFrame(~, event, himage)
+% Called by preview for every frame. The image object was created from VideoResolution, which can
+% lag behind a binning or crop change (the toolbox refreshes its frame size only when streaming
+% starts), so match the image and its axes to the size of each frame: square pixels, the frame
+% filling the axes along its longer side instead of sitting in one corner.
+himage.CData = event.Data;
+sz = size(event.Data);
+ax = ancestor(himage, 'axes');
+if ~isequal(round([diff(ax.XLim) diff(ax.YLim)]), [sz(2) sz(1)])
+    himage.XData = [1 sz(2)]; himage.YData = [1 sz(1)];
+    ax.XLim = [0.5 sz(2) + 0.5]; ax.YLim = [0.5 sz(1) + 0.5];
+    ax.DataAspectRatio = [1 1 1];
+    ax.YDir = 'reverse';
+end
