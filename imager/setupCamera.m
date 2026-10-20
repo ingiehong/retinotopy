@@ -17,10 +17,28 @@ if ~isempty(cfg.binning) && cfg.binning > 1
         fprintf('setupCamera: this camera has no BinningHorizontal/BinningVertical property; binning not applied\n');
     end
 end
-%% crop (cfg.roi): set on the camera itself (GenICam Width/Height/OffsetX/OffsetY) when it exposes
-% them, because a toolbox ROI (vid.ROIPosition) is thrown away when the toolbox later notices the new
-% maximum frame size after binning ('Resetting the ROI as the max width and height has been updated').
-% [width height] centres the crop on the binned frame; [xoffset yoffset width height] places it.
+%% let the toolbox learn the binned frame size before anything depends on it. After a binning change the
+% videoinput keeps reporting the old VideoResolution and maximum until streaming starts; when it finally
+% notices, it resets its ROI to the full frame ('Resetting the ROI as the max width and height has been
+% updated') and discards any crop set earlier. One snapshot forces that refresh now.
+if ~isempty(cfg.binning) && cfg.binning > 1
+    before = double(vid.VideoResolution);
+    try
+        getsnapshot(vid);
+    catch e
+        fprintf('setupCamera: snapshot to refresh the frame size failed (%s)\n', e.message);
+    end
+    for k = 1:30
+        if ~isequal(double(vid.VideoResolution), before), break; end
+        pause(0.1);
+    end
+    after = double(vid.VideoResolution);
+    fprintf('setupCamera: frame %d x %d px before binning, %d x %d px after\n', before(1), before(2), after(1), after(2));
+end
+
+%% crop (cfg.roi): [width height] centres it on the binned frame, [xoffset yoffset width height] places it.
+% Through the toolbox ROI (the gentl adaptor hides the camera's Width/Height/Offset features and manages
+% them itself), or on the camera when an adaptor exposes those features.
 if ~isempty(cfg.roi)
     roi = double(cfg.roi(:)');
     onDevice = isprop(src, 'Width') && isprop(src, 'Height') && isprop(src, 'OffsetX') && isprop(src, 'OffsetY');
@@ -41,20 +59,11 @@ if ~isempty(cfg.roi)
     else
         vid.ROIPosition = roi;
     end
-end
-
-% The videoinput keeps reporting the old frame size until its engine refreshes the maximum later, but
-% imager.m sizes the preview from VideoResolution right after this function: pin the toolbox ROI to the
-% frame the camera reports now (VideoResolution follows ROIPosition; the later reset lands on the same
-% full, cropped frame).
-if isprop(src, 'Width') && isprop(src, 'Height')
-    target = [double(src.Width) double(src.Height)];
-    if ~isequal(double(vid.VideoResolution), target)
-        try
-            vid.ROIPosition = [0 0 target];
-        catch e
-            warning('setupCamera:resolution', 'could not set the ROI to the camera''s %d x %d px frame (%s); the preview may show the frames in one corner', target(1), target(2), e.message);
-        end
+    res = double(vid.VideoResolution);
+    if isequal(res, roi(3:4))
+        fprintf('setupCamera: crop %d x %d px at offset (%d, %d) of the %d x %d px binned frame\n', roi(3), roi(4), roi(1), roi(2), full(1), full(2));
+    else
+        warning('setupCamera:crop', 'asked for a %d x %d px crop but the videoinput reports %d x %d px: the trial will be larger than planned', roi(3), roi(4), res(1), res(2));
     end
 end
 

@@ -114,4 +114,4 @@ if get(GUIhandles.main.analysisFlag,'value')
     
 end
 
-Tens = Tens*0;
+Tens = [];   % free the trial now (GrabSave assigns the next one); a zeroed copy kept gigabytes allocated between trials

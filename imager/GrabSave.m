@@ -18,9 +18,11 @@ disp('Video acquisition triggered!')
 
 %% Wait for logging to finish, then stop
 try
-    wait(vid, total_time+10, 'logging');   % returns as soon as FramesPerTrigger frames are logged
+    % returns as soon as FramesPerTrigger frames are logged, and in any case BEFORE the DAQ session's
+    % DataAvailable callback (total_time + 1 s of analog data) runs the online analysis on Tens
+    wait(vid, total_time + 0.5, 'logging');
 catch
-    pause(total_time+0.1)                  % older adaptors: blind wait
+    if vid.FramesAvailable < 2, pause(total_time + 0.1); end   % adaptor without wait support: blind wait; a timeout just proceeds with the frames that arrived
 end
 stop(vid)
 cameraStrobe(src, false, cfg);
