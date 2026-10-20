@@ -32,6 +32,18 @@ if ~isempty(cfg.binning) && cfg.binning > 1
         if ~isequal(double(vid.VideoResolution), before), break; end
         pause(0.1);
     end
+    if isequal(double(vid.VideoResolution), before)   % the snapshot did not do it: a brief preview starts the stream the same way
+        try
+            preview(vid);
+            for k = 1:30
+                if ~isequal(double(vid.VideoResolution), before), break; end
+                pause(0.1);
+            end
+            closepreview(vid);
+        catch e
+            fprintf('setupCamera: preview to refresh the frame size failed (%s)\n', e.message);
+        end
+    end
     after = double(vid.VideoResolution);
     fprintf('setupCamera: frame %d x %d px before binning, %d x %d px after\n', before(1), before(2), after(1), after(2));
 end

@@ -11,6 +11,8 @@ N = ceil(total_time*FPS);
 cfg = cameraConfig;
 
 checkFrameMemory(vid, vid.FramesPerTrigger);   % errors with the fix before a trial that cannot fit in RAM
+res = vid.VideoResolution;
+fprintf('GrabSave: videoinput %d x %d px (ROI %s, %s), %d frames requested; %s\n', res(1), res(2), mat2str(vid.ROIPosition), vid.VideoFormat, vid.FramesPerTrigger, memoryReport());
 cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
 start(vid);
 trigger(vid);
@@ -32,6 +34,8 @@ if nAvail ~= vid.FramesPerTrigger
 end
 [im, frameTimes] = getdata(vid, nAvail);
 im = squeeze(im);
+info = whos('im');
+fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); %s\n', nAvail, size(im, 2), size(im, 1), class(im), info.bytes / max(nAvail, 1) / 1e6, info.bytes / 2^30, memoryReport());
 Tens = im;
 tic
 info = whos('im'); nbytes = info.bytes;
@@ -117,3 +121,11 @@ grab.comments = {};
 % 
 % end
 
+
+function txt = memoryReport
+% MATLAB's own memory use and the free physical memory (Windows only; elsewhere an empty string).
+txt = '';
+if ispc
+    [u, sys] = memory;
+    txt = sprintf('MATLAB using %.1f GB, %.1f GB physical free', u.MemUsedMATLAB / 2^30, sys.PhysicalMemory.Available / 2^30);
+end
