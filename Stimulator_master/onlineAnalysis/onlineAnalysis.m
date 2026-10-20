@@ -15,6 +15,9 @@ if get(GUIhandles.main.analysisFlag,'value')
     %T = getparam('t_period')/60;
     T = mean(diff(Disptimes)) %This one might be more accurate
     disp(['Detected ' num2str(length(Disptimes)-1) ' trials of visual stimulation. Average length: ' num2str(T) ])
+    if numel(Disptimes) < 2
+        error('onlineAnalysis:sweeps', 'only %d sweep boundary in the photodiode signal: the online map needs at least two sweeps (stim_time >= 2 x t_period); the frames are saved but not analysed', numel(Disptimes));
+    end
     fidx = find(Grabtimes>Disptimes(1) & Grabtimes<Disptimes(end));  %frames during stimulus
     nAvail = size(Tens,3);
     if any(fidx > nAvail)   % the camera kept pulsing after the acquisition stopped (dropped frames, out of memory)

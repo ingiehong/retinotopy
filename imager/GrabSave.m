@@ -10,32 +10,53 @@ total_time =  str2num(get(findobj('Tag','timetxt'),'String'));
 N = ceil(total_time*FPS);
 cfg = cameraConfig;
 
-checkFrameMemory(vid, vid.FramesPerTrigger);   % errors with the fix before a trial that cannot fit in RAM
-res = vid.VideoResolution;
-fprintf('GrabSave: videoinput %d x %d px (ROI %s, %s), %d frames requested; %s\n', res(1), res(2), mat2str(vid.ROIPosition), vid.VideoFormat, vid.FramesPerTrigger, memoryReport());
+checkFrameMemory(vid, vid.FramesPerTrigger);   % errors with the fix before a trial that cannot fit in physical RAM
+sz = frameSize(vid); nReq = vid.FramesPerTrigger;
+fprintf('GrabSave: frames %d x %d px (ROI %s, %s), %d requested; %s\n', sz(1), sz(2), mat2str(vid.ROIPosition), vid.VideoFormat, nReq, memoryReport());
 cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
 start(vid);
 trigger(vid);
 disp('Video acquisition triggered!')
 
-%% Wait for logging to finish, then stop
-try
-    % returns as soon as FramesPerTrigger frames are logged, and in any case BEFORE the DAQ session's
-    % DataAvailable callback (total_time + 1 s of analog data) runs the online analysis on Tens
-    wait(vid, total_time + 0.5, 'logging');
-catch
-    if vid.FramesAvailable < 2, pause(total_time + 0.1); end   % adaptor without wait support: blind wait; a timeout just proceeds with the frames that arrived
+%% Pull the frames out of the acquisition buffer WHILE they arrive, into one preallocated array, so the
+% trial is held once (letting the buffer fill and copying it out at the end doubled the memory and ran a
+% 16 GB PC dry). The loop ends at total_time + 0.5 s at the latest: before the DAQ session's
+% DataAvailable callback (total_time + 1 s of analog data) runs the online analysis on Tens.
+im = []; frameTimes = zeros(nReq, 1); k = 0; t0 = tic;
+while k < nReq && toc(t0) < total_time + 0.5
+    n = min(vid.FramesAvailable, nReq - k);
+    if n > 0
+        [fr, tt] = getdata(vid, n);                      % H x W x bands x n
+        if isempty(im), im = zeros(size(fr, 1), size(fr, 2), nReq, class(fr)); end
+        im(:, :, k+1:k+n) = reshape(fr, size(fr, 1), size(fr, 2), n);
+        frameTimes(k+1:k+n) = tt(:); k = k + n;
+    else
+        pause(0.02);
+    end
 end
 stop(vid)
 cameraStrobe(src, false, cfg);
-nAvail = vid.FramesAvailable;
-if nAvail ~= vid.FramesPerTrigger
-    warning('GrabSave:frames', '%d frames available but %d were requested (dropped frames or memory?); the camera pulses recorded by the DAQ will not match the saved frames one to one', nAvail, vid.FramesPerTrigger);
+n = min(vid.FramesAvailable, nReq - k);                   % whatever arrived while stopping
+if n > 0
+    [fr, tt] = getdata(vid, n);
+    if isempty(im), im = zeros(size(fr, 1), size(fr, 2), nReq, class(fr)); end
+    im(:, :, k+1:k+n) = reshape(fr, size(fr, 1), size(fr, 2), n);
+    frameTimes(k+1:k+n) = tt(:); k = k + n;
 end
-[im, frameTimes] = getdata(vid, nAvail);
-im = squeeze(im);
+flushdata(vid);
+nAvail = k;
+if nAvail == 0
+    error('GrabSave:noFrames', 'no frames arrived in %g s: check the camera, its USB link and the strobe/trigger settings', total_time + 0.5);
+end
+if nAvail ~= nReq
+    warning('GrabSave:frames', '%d frames received but %d were requested (dropped frames or memory?); the camera pulses recorded by the DAQ will not match the saved frames one to one', nAvail, nReq);
+    im(:, :, nAvail+1:end) = []; frameTimes(nAvail+1:end) = [];
+end
 info = whos('im');
-fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); %s\n', nAvail, size(im, 2), size(im, 1), class(im), info.bytes / max(nAvail, 1) / 1e6, info.bytes / 2^30, memoryReport());
+sub = im(:, :, 1:max(1, floor(nAvail / 20)):nAvail);      % every ~20th frame for the saturation readout
+top = double(intmax(class(im)));
+fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); max pixel %d of %d, %.2f%% of pixels at the top; %s\n', ...
+    nAvail, size(im, 2), size(im, 1), class(im), info.bytes / nAvail / 1e6, info.bytes / 2^30, max(sub(:)), top, 100 * mean(sub(:) >= top - 1), memoryReport());
 Tens = im;
 tic
 info = whos('im'); nbytes = info.bytes;

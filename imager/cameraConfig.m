@@ -11,9 +11,9 @@ function cfg = cameraConfig
 %                    connections, so they are set here every time the imager starts.
 %
 % Notes for the Blackfly S:
-%   * One trial of total_time seconds at cfg.fps frames/s is held in RAM twice (image acquisition
-%     buffer plus the returned frames; checkFrameMemory refuses a trial that does not fit). On a 16 GB
-%     PC keep one trial below ~3 GB: 4x4 binning gives 1328x1150 px, 3 MB per Mono16 frame, 8.8 GB per
+%   * One trial of total_time seconds at cfg.fps frames/s is held in RAM once (GrabSave streams the
+%     frames out of the acquisition buffer as they arrive; checkFrameMemory refuses a trial that does
+%     not fit in the free physical memory). On a 16 GB PC keep one trial below ~3 GB: 4x4 binning gives 1328x1150 px, 3 MB per Mono16 frame, 8.8 GB per
 %     191 s trial at 15 Hz, too much; the BFS-U3-244S8 refuses 8x8 binning, so crop instead:
 %     cfg.roi = [700 700] centres a 700x700 px window on the binned frame (1 MB/frame, 2.8 GB).
 %   * Mono16 (12-bit ADC) is strongly preferred over Mono8 for 2-4 % dF/F signals; use binning

@@ -291,12 +291,12 @@ end
  
 src = getselectedsource(vid);
 setupCamera(vid, src, cameraCfg);   % binning, ROI, exposure, gain, frame rate, strobe line, manual trigger
-vidRes0 = vid.VideoResolution;       % [width height] after binning/ROI
+vidRes0 = frameSize(vid);            % [width height] after binning/ROI (the ROI; VideoResolution ignores the crop on gentl)
 ROIcrop = [0 0 vidRes0(2) vidRes0(1)];   % [x y rows cols] used by Grab Single; follows the camera instead of a hard-coded 300x480
 
 %% Open image in existing window
 
-vidRes = vid.VideoResolution;
+vidRes = frameSize(vid);
 nBands = vid.NumberOfBands;
 imagerhandles.hImage = image( handles.videoaxes, zeros(vidRes(2), vidRes(1), nBands) );
 setappdata(imagerhandles.hImage, 'UpdatePreviewWindowFcn', @fitPreviewToFrame);   % keep the axes matched to the frames that actually arrive

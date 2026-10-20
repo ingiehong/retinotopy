@@ -17,35 +17,14 @@ if ~isempty(cfg.binning) && cfg.binning > 1
         fprintf('setupCamera: this camera has no BinningHorizontal/BinningVertical property; binning not applied\n');
     end
 end
-%% let the toolbox learn the binned frame size before anything depends on it. After a binning change the
-% videoinput keeps reporting the old VideoResolution and maximum until streaming starts; when it finally
-% notices, it resets its ROI to the full frame ('Resetting the ROI as the max width and height has been
-% updated') and discards any crop set earlier. One snapshot forces that refresh now.
+%% one snapshot after binning, so the toolbox refreshes its idea of the frame size before the crop
+% (after a binning change it can keep the old size until streaming starts, and then reset its ROI)
 if ~isempty(cfg.binning) && cfg.binning > 1
-    before = double(vid.VideoResolution);
     try
         getsnapshot(vid);
     catch e
         fprintf('setupCamera: snapshot to refresh the frame size failed (%s)\n', e.message);
     end
-    for k = 1:30
-        if ~isequal(double(vid.VideoResolution), before), break; end
-        pause(0.1);
-    end
-    if isequal(double(vid.VideoResolution), before)   % the snapshot did not do it: a brief preview starts the stream the same way
-        try
-            preview(vid);
-            for k = 1:30
-                if ~isequal(double(vid.VideoResolution), before), break; end
-                pause(0.1);
-            end
-            closepreview(vid);
-        catch e
-            fprintf('setupCamera: preview to refresh the frame size failed (%s)\n', e.message);
-        end
-    end
-    after = double(vid.VideoResolution);
-    fprintf('setupCamera: frame %d x %d px before binning, %d x %d px after\n', before(1), before(2), after(1), after(2));
 end
 
 %% crop (cfg.roi): [width height] centres it on the binned frame, [xoffset yoffset width height] places it.
@@ -71,11 +50,11 @@ if ~isempty(cfg.roi)
     else
         vid.ROIPosition = roi;
     end
-    res = double(vid.VideoResolution);
+    res = frameSize(vid);
     if isequal(res, roi(3:4))
         fprintf('setupCamera: crop %d x %d px at offset (%d, %d) of the %d x %d px binned frame\n', roi(3), roi(4), roi(1), roi(2), full(1), full(2));
     else
-        warning('setupCamera:crop', 'asked for a %d x %d px crop but the videoinput reports %d x %d px: the trial will be larger than planned', roi(3), roi(4), res(1), res(2));
+        warning('setupCamera:crop', 'asked for a %d x %d px crop but the ROI reports %d x %d px: the trial will be larger than planned', roi(3), roi(4), res(1), res(2));
     end
 end
 
@@ -117,7 +96,7 @@ link = '';
 if isprop(src, 'DeviceCurrentSpeed'), link = sprintf(', USB link %s', char(src.DeviceCurrentSpeed)); end   % SuperSpeed = USB 3, HighSpeed = USB 2
 if isprop(src, 'DeviceLinkSpeed'), link = sprintf('%s (%.0f MB/s)', link, double(src.DeviceLinkSpeed) / 1e6); end
 if ~isnan(actual) && abs(actual - cfg.fps) > 0.5
-    r = double(vid.VideoResolution); b = 2; if ~isempty(regexp(vid.VideoFormat, 'Mono8|RGB8|8$', 'once')), b = 1; end
+    r = frameSize(vid); b = 2; if ~isempty(regexp(vid.VideoFormat, 'Mono8|RGB8|8$', 'once')), b = 1; end
     warning('setupCamera:fps', ['requested %.2f fps but the camera reports %.2f fps%s. At %d x %d px x %d bytes that is %.0f MB/s: ' ...
         'a USB 2 port, hub or cable (HighSpeed) limits the Blackfly S to about 25 MB/s. Use a USB 3 (SuperSpeed) port, ' ...
         'or crop (cfg.roi) or bin more. The DAQ pulses still match the saved frames, so a run is usable, just slower.'], ...
@@ -134,7 +113,7 @@ if isempty(total_time), total_time = 10; end
 vid.FramesPerTrigger = round(total_time * cfg.fps);
 
 %% report
-res = vid.VideoResolution;
+res = frameSize(vid);
 fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s, %.2f GB of frames per %g s trial%s\n', ...
     cfg.profile, cfg.adaptor, vid.VideoFormat, res(1), res(2), actual, cfg.fps, cfg.exposure_ms, mat2str(cfg.binning), cfg.strobeLine, checkFrameMemory(vid, vid.FramesPerTrigger), total_time, link);
 
