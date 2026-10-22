@@ -162,7 +162,7 @@ function plotData(src,event)
     disp(['Time intervals between dispSyncTimes:'])
     disp(diff(syncInfo.dispSyncs))
     saveSyncInfo(syncInfo)  %append .analyzer file
-    onlineAnalysis(c,r,syncInfo)     %Compute F1
+    runOnlineAnalysis(c,r,syncInfo)  %Compute F1 now, or after GrabSave when the frames are not in yet
         
     %Good debug statements
     %save([ fileID '_syncInfo'], 'syncInfo' );

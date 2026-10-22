@@ -1379,7 +1379,7 @@ r='Average more';
 while strcmp(r,'Average more')
     img = img*(k-1)/k + double(imagerhandles.preview.CData)/k;
     pause(0.1)
-    imagesc(img), axis image; truesize
+    imagesc(img), axis image; if ~strcmp(get(gcf, 'WindowStyle'), 'docked'), truesize; end
     title(['Grabbing image: # ' num2str(k) ' frames averaged at 10hz'])
     if mod(k,20)==0
         r = questdlg('Do you want to save it?','Single Grab','Yes','No', 'Average more','Yes');
@@ -1704,7 +1704,7 @@ zz  = zeros(IMGSIZE,IMGSIZE,'uint16');
 %img = imagerhandles.milimg.Get(zz,IMGSIZE^2,-1,0,0,IMGSIZE,IMGSIZE)';  %% grab last one
 
 figure(10);
-imagesc(img),axis off, colormap gray; truesize
+imagesc(img),axis off, colormap gray; if ~strcmp(get(gcf, 'WindowStyle'), 'docked'), truesize; end
 
 r = questdlg('Crop the image that is saved to the disk?','Select ROI','Yes','No','Yes');
 if(strcmp(r,'Yes'))

@@ -39,8 +39,11 @@ end
 
 %Note: I used to truncate these things to the screen size, but it is not
 %needed.  It also messes things up.
-xran = [Pstruct.x_pos-floor(xN/2)+1  Pstruct.x_pos+ceil(xN/2)];
-yran = [Pstruct.y_pos-floor(yN/2)+1  Pstruct.y_pos+ceil(yN/2)];
+xc = Pstruct.x_pos; yc = Pstruct.y_pos;                 % stimulus centre in screen pixels
+if xc < 0, xc = round(screenRes.width/2); end           % x_pos = -1: centre on this monitor, whatever its resolution
+if yc < 0, yc = round(screenRes.height/2); end          % y_pos = -1: same vertically
+xran = [xc-floor(xN/2)+1  xc+ceil(xN/2)];
+yran = [yc-floor(yN/2)+1  yc+ceil(yN/2)];
 
 cycles = Pstruct.stim_time/(Pstruct.t_period/screenRes.hz);
 Nlast = round(TDim(3)*(cycles-floor(cycles)));  %number of frames on last cycle

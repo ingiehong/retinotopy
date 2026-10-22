@@ -13,6 +13,7 @@ cfg = cameraConfig;
 checkFrameMemory(vid, vid.FramesPerTrigger);   % errors with the fix before a trial that cannot fit in physical RAM
 sz = frameSize(vid); nReq = vid.FramesPerTrigger;
 fprintf('GrabSave: frames %d x %d px (ROI %s, %s), %d requested; %s\n', sz(1), sz(2), mat2str(vid.ROIPosition), vid.VideoFormat, nReq, memoryReport());
+Tens = [];                      % nothing to analyse until this trial's frames are in (see runOnlineAnalysis)
 cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
 start(vid);
 trigger(vid);
@@ -54,9 +55,10 @@ if nAvail ~= nReq
 end
 info = whos('im');
 sub = im(:, :, 1:max(1, floor(nAvail / 20)):nAvail);      % every ~20th frame for the saturation readout
-top = double(intmax(class(im)));
-fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); max pixel %d of %d, %.2f%% of pixels at the top; %s\n', ...
-    nAvail, size(im, 2), size(im, 1), class(im), info.bytes / nAvail / 1e6, info.bytes / 2^30, max(sub(:)), top, 100 * mean(sub(:) >= top - 1), memoryReport());
+top = double(max(sub(:)));                                 % the ceiling actually reached (65520 = 16 x 4095 for 4x4 Sum binning of 12-bit data)
+satNote = ''; if top >= 0.99 * double(intmax(class(im))), satNote = ' - SATURATED: lower the LED or the exposure'; end
+fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); max pixel %d, %.1f%% of pixels at that value%s; %s\n', ...
+    nAvail, size(im, 2), size(im, 1), class(im), info.bytes / nAvail / 1e6, info.bytes / 2^30, top, 100 * mean(sub(:) >= top), satNote, memoryReport());
 Tens = im;
 tic
 info = whos('im'); nbytes = info.bytes;

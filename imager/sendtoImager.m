@@ -72,6 +72,7 @@ switch(cmd(1))
         %h = GrabSaveLoop(h,fname,parport); %
         
         GrabSave(fname); %
+        runPendingAnalysis;   % the DAQ callback may have finished before the frames were in
         set(1,'Name','imager');
         drawnow;
 
