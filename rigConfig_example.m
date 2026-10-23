@@ -28,7 +28,10 @@ if exist('cfg', 'var') && isstruct(cfg)           % master: camera profile
     cfg.fps = 15;
     cfg.exposure_ms = 30;
     cfg.binning = 4;                              % this camera's maximum
-    cfg.roi = [700 700];                          % centred 700x700 px crop (2.8 GB per 191 s Mono16 trial); [x y w h] to place it
+    cfg.roi = [700 700];                          % centred 700x700 px crop (2.5 GB per 191 s Mono16 trial); [x y w h] to place it; [] = no crop
+    % Per 191 s trial at 15 Hz in Mono16: 4x4 binning full frame 8.8 GB; 4x4 + 700 px crop 2.5 GB;
+    % 2x2 + 700 px crop 2.5 GB (half the field at twice the sampling); 2x2 + 1400 px crop 10 GB;
+    % no binning 140 GB. A 16 GB PC takes about 4 GB per trial.
 end
 
 if exist('rip', 'var')                            % slave: master (acquisition) computer's IP address

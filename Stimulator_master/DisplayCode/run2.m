@@ -141,7 +141,9 @@ function plotData(src,event)
     temp2=temp1; temp2(temp1<1)=0; temp2(temp1>=1.5)=5; 
     PDchan=find(diff(temp2>1.5)==1);   
     dispSyncTimes=PDchan/analogIN.Rate  %this will become syncInfo.dispSyncs
-    figure; plot(timestamps(2:end), diff(data(:,1))>1);
+    hf = findobj('Type', 'figure', 'Tag', 'syncFigure');          % one figure reused per session: a new one per trial held ~100 MB each
+    if isempty(hf), figure('Tag', 'syncFigure'); else, figure(hf(1)); clf; end
+    plot(timestamps(2:end), diff(data(:,1))>1);
     hold on
     plot(timestamps(1:end), temp2>1, 'r')
     legend('camera','photodiode');

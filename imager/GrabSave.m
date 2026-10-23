@@ -4,7 +4,7 @@ function GrabSave(fname)
 %or Blackfly S via the gentl adaptor; strobe gated through cameraStrobe.m; frame count checked;
 %large trials saved with -v7.3 and BigTIFF.
 
-global Tens ROIcrop IMGSIZE GUIhandles FPS vid src
+global Tens ROIcrop IMGSIZE GUIhandles FPS vid src Mstate
 
 total_time =  str2num(get(findobj('Tag','timetxt'),'String'));
 N = ceil(total_time*FPS);
@@ -25,6 +25,10 @@ disp('Video acquisition triggered!')
 % DataAvailable callback (total_time + 1 s of analog data) runs the online analysis on Tens.
 im = []; frameTimes = zeros(nReq, 1); k = 0; t0 = tic;
 while k < nReq && toc(t0) < total_time + 0.5
+    if isstruct(Mstate) && isfield(Mstate, 'running') && ~Mstate.running   % Abort pressed in MainWindow
+        disp('GrabSave: Abort pressed, stopping the acquisition; the frames received so far are saved')
+        break
+    end
     n = min(vid.FramesAvailable, nReq - k);
     if n > 0
         [fr, tt] = getdata(vid, n);                      % H x W x bands x n

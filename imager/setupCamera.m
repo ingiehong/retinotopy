@@ -3,8 +3,9 @@ function setupCamera(vid, src, cfg)
 % exposure, gain, frame rate, link throughput and the strobe line. Works for the 'pointgrey'
 % (Grasshopper3) and 'gentl' (Blackfly S) adaptors; properties that do not exist are reported and skipped.
 
-%% binning and ROI (gentl: GenICam features; pointgrey: part of the Format7 mode)
-if ~isempty(cfg.binning) && cfg.binning > 1
+%% binning and ROI (gentl: GenICam features; pointgrey: part of the Format7 mode). Applied for any value,
+% 1 included: the camera keeps its last binning until power-cycled, so 1 must be set explicitly.
+if ~isempty(cfg.binning) && cfg.binning >= 1
     if isprop(src, 'BinningHorizontal') && isprop(src, 'BinningVertical')
         if isprop(src, 'BinningSelector'), setGenICam(src, 'BinningSelector', 'All'); end
         if ~isempty(cfg.binningMode)
@@ -19,7 +20,7 @@ if ~isempty(cfg.binning) && cfg.binning > 1
 end
 %% one snapshot after binning, so the toolbox refreshes its idea of the frame size before the crop
 % (after a binning change it can keep the old size until streaming starts, and then reset its ROI)
-if ~isempty(cfg.binning) && cfg.binning > 1
+if ~isempty(cfg.binning) && cfg.binning >= 1
     try
         getsnapshot(vid);
     catch e
