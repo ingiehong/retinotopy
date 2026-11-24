@@ -65,7 +65,7 @@ if nAvail < size(im, 3)   % the array has room for the most frames a trial can h
     if roomForCopy(bytesPerFrame * nAvail)
         im(:, :, nAvail+1:end) = [];
     else
-        fprintf('GrabSave: not enough free memory to shorten the array: its last %d frames are empty; nFrames = %d is saved with the data\n', size(im, 3) - nAvail, nAvail);
+        fprintf('GrabSave: not enough free memory to shorten the array in memory (its last %d frames are empty); the %d real frames are written to disk in blocks\n', size(im, 3) - nAvail, nAvail);
     end
     frameTimes(nAvail+1:end) = [];
 end
@@ -78,16 +78,20 @@ fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB)
     nAvail, size(im, 2), size(im, 1), class(im), bytesPerFrame / 1e6, bytesPerFrame * nAvail / 2^30, top, step, 100 * mean(sub(:) >= top), satNote, memoryReport());
 Tens = im; TensFrames = nFrames;
 tic
-info = whos('im'); nbytes = info.bytes;
-if nbytes > 2^31 - 1
-    save([ fname '.mat'], 'im', 'frameTimes', 'nFrames', '-v7.3', '-nocompression');   % the default v7 format silently writes an empty file above 2 GB; uncompressed, because compressing several GB takes minutes between trials
+nbytes = bytesPerFrame * nFrames;
+if size(im, 3) > nFrames
+    saveFramesInBlocks(im, nFrames, frameTimes, fname, nbytes);   % the array could not be shortened: write only the real frames
 else
-    save([ fname '.mat'], 'im', 'frameTimes', 'nFrames');
+    if nbytes > 2^31 - 1
+        save([ fname '.mat'], 'im', 'frameTimes', 'nFrames', '-v7.3', '-nocompression');   % the default v7 format silently writes an empty file above 2 GB; uncompressed, because compressing several GB takes minutes between trials
+    else
+        save([ fname '.mat'], 'im', 'frameTimes', 'nFrames');
+    end
+    toc
+    tic
+    tifopts = struct('big', nbytes > 2^32 - 1);   % BigTIFF above 4 GB
+    saveastiff(im, [ fname '.tif'], tifopts)
 end
-toc
-tic
-tifopts = struct('big', nbytes > 2^32 - 1);   % BigTIFF above 4 GB
-saveastiff(im, [ fname '.tif'], tifopts)
 toc
 %Creating grab file
 tmp=Tens(:,:,min(10,nFrames));
@@ -160,6 +164,24 @@ grab.comments = {};
 %     
 % 
 % end
+
+
+function saveFramesInBlocks(im, nFrames, frameTimes, fname, nbytes)
+% Write frames 1..nFrames of im to <fname>.mat (v7.3) and <fname>.tif, 200 frames at a time, so that no
+% second copy of the trial is needed. The files then hold exactly the frames that were received.
+matname = [fname '.mat']; tifname = [fname '.tif'];
+if exist(tifname, 'file'), error('GrabSave:exists', '%s already exists', tifname); end
+[h, w, ~] = size(im);
+save(matname, 'frameTimes', 'nFrames', '-v7.3', '-nocompression');
+h5create(matname, '/im', [h w nFrames], 'Datatype', class(im));
+h5writeatt(matname, '/im', 'MATLAB_class', class(im));        % makes the dataset an ordinary MATLAB variable for load
+tifopts = struct('big', nbytes > 2^32 - 1, 'append', true);
+for a = 1:200:nFrames
+    b = min(a + 199, nFrames);
+    block = im(:, :, a:b);
+    h5write(matname, '/im', block, [1 1 a], [h w b - a + 1]);
+    saveastiff(block, tifname, tifopts);
+end
 
 
 function warnIfConfigChanged(cfg, applied)
