@@ -10,5 +10,10 @@ if isempty(Tens) || ndims(Tens) < 3
     disp('Frames not in yet: the online analysis runs as soon as the acquisition finishes')
 else
     pendingAnalysis = [];
-    onlineAnalysis(c, r, syncInfo)
+    try
+        onlineAnalysis(c, r, syncInfo)
+    catch e
+        Tens = [];   % do not keep gigabytes of frames because the analysis failed
+        rethrow(e)
+    end
 end

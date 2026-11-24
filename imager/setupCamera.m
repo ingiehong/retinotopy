@@ -3,7 +3,8 @@ function [vid, src, fps] = setupCamera(vid, src, cfg)
 % exposure, gain, frame rate, link throughput and the strobe line. Works for the 'pointgrey'
 % (Grasshopper3) and 'gentl' (Blackfly S) adaptors; properties that do not exist are reported and skipped.
 % Returns vid and src because a binning change reconnects to the camera (new objects), and fps, the
-% frame rate to plan trials with: cfg.fps, or the lower rate that is all the camera can deliver.
+% frame rate the camera reports it will deliver (cfg.fps or lower). A trial always reserves room for
+% total_time x cfg.fps frames and lasts total_time; fps only tells GrabSave how many frames to expect.
 [vid, src, bin, reconnected] = applyBinning(vid, src, cfg);
 try
     fps = configure(vid, src, cfg, bin);
@@ -183,11 +184,11 @@ if ~isnan(actual) && abs(actual - cfg.fps) > 0.5
         warning('setupCamera:fps', ['requested %.2f fps but the camera can deliver %.2f fps for %d x %d px frames at binning %d x %d in %s%s. ' ...
             'The limit is the sensor readout, which grows with the number of sensor ROWS read (on the BFS-U3-244S8 about 27 us per row in Mono16, ' ...
             'more when the binning is done by the camera''s image processor). For a higher rate use fewer rows (a smaller cfg.roiSensor height) ' ...
-            'or a larger cfg.binning. Trials are planned at %.2f fps; the DAQ pulses still match the saved frames.'], ...
-            cfg.fps, actual, r(1), r(2), binv(1), binv(2), vid.VideoFormat, link, actual);
+            'or a larger cfg.binning. A trial keeps its duration and simply has fewer frames; the DAQ pulses still match the saved frames.'], ...
+            cfg.fps, actual, r(1), r(2), binv(1), binv(2), vid.VideoFormat, link);
     end
-    if actual >= 1 && actual < cfg.fps, fps = actual; end
 end
+if ~isnan(actual) && actual >= 1 && actual < cfg.fps, fps = actual; end   % also when it is only slightly lower (14.996 for 15)
 
 %% strobe line: configured now, enabled only while GrabSave logs frames
 cameraStrobe(src, false, cfg);
@@ -196,12 +197,12 @@ cameraStrobe(src, false, cfg);
 triggerconfig(vid, 'manual');
 total_time = str2num(get(findobj('Tag', 'timetxt'), 'String')); %#ok<ST2NM>
 if isempty(total_time), total_time = 10; end
-vid.FramesPerTrigger = floor(total_time * fps + 1e-6);
+vid.FramesPerTrigger = floor(total_time * cfg.fps + 1e-6);   % the most frames a trial can have
 
 %% report
 res = frameSize(vid);
 if isempty(bin), binTxt = 'set by the video format'; else, binTxt = sprintf('%d x %d (read from the camera)', bin); end
-fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s, %.2f GB of frames per %g s trial%s\n', ...
+fprintf('Camera profile ''%s'': %s %s, %d x %d px, %.2f fps (requested %g), exposure %g ms, binning %s, strobe %s, up to %.2f GB of frames per %g s trial%s\n', ...
     cfg.profile, cfg.adaptor, vid.VideoFormat, res(1), res(2), actual, cfg.fps, cfg.exposure_ms, binTxt, cfg.strobeLine, frameGB(vid, vid.FramesPerTrigger), total_time, link);
 
 function m = featureMax(src, name)

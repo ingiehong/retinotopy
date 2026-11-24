@@ -277,7 +277,7 @@ imagerhandles.hwroisize = 128;
 
 
 %% Modern MATLAB Image Acquisition Toolbox-based camera acquisition code
-global vid src 
+global vid src CAMFPS CAMCFG
 
 try   % a video object left over from an earlier imager window in this MATLAB session would keep the camera busy
     old = imaqfind; if ~isempty(old), delete(old); end
@@ -295,7 +295,8 @@ catch ME
 end
  
 src = getselectedsource(vid);
-[vid, src, FPS] = setupCamera(vid, src, cameraCfg);   % binning, crop, exposure, gain, frame rate, strobe line, manual trigger (reconnects when the binning changed); FPS = the rate the camera delivers
+[vid, src, CAMFPS] = setupCamera(vid, src, cameraCfg);   % binning, crop, exposure, gain, frame rate, strobe line, manual trigger (reconnects when the binning changed)
+CAMCFG = cameraCfg;   % what the camera was set up with (GrabSave warns when rigConfig.m has changed since); CAMFPS = the rate the camera delivers
 vidRes0 = frameSize(vid);            % [width height] after binning/ROI (the ROI; VideoResolution ignores the crop on gentl)
 ROIcrop = [0 0 vidRes0(2) vidRes0(1)];   % [x y rows cols] used by Grab Single; follows the camera instead of a hard-coded 300x480
 

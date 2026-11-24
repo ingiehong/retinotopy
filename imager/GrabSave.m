@@ -4,16 +4,19 @@ function GrabSave(fname)
 %or Blackfly S via the gentl adaptor; strobe gated through cameraStrobe.m; frame count checked;
 %large trials saved with -v7.3 and BigTIFF.
 
-global Tens ROIcrop IMGSIZE GUIhandles FPS vid src Mstate
+global Tens TensFrames ROIcrop IMGSIZE GUIhandles FPS CAMFPS CAMCFG vid src Mstate
 
 total_time =  str2num(get(findobj('Tag','timetxt'),'String'));
 N = ceil(total_time*FPS);
 cfg = cameraConfig;
+warnIfConfigChanged(cfg, CAMCFG);
 
+Tens = []; TensFrames = [];     % release the previous trial before asking whether this one fits; nothing to analyse until this trial's frames are in (see runOnlineAnalysis)
 checkFrameMemory(vid, vid.FramesPerTrigger);   % errors with the fix before a trial that cannot fit in physical RAM
-sz = frameSize(vid); nReq = vid.FramesPerTrigger;
-fprintf('GrabSave: frames %d x %d px (ROI %s, %s), %d requested; %s\n', sz(1), sz(2), mat2str(vid.ROIPosition), vid.VideoFormat, nReq, memoryReport());
-Tens = [];                      % nothing to analyse until this trial's frames are in (see runOnlineAnalysis)
+sz = frameSize(vid); nReq = vid.FramesPerTrigger;                 % nReq: room for total_time x cfg.fps frames, the most a trial can have
+rate = FPS; if ~isempty(CAMFPS) && CAMFPS > 0, rate = min(FPS, CAMFPS); end
+nExpect = min(nReq, floor(total_time * rate + 1e-6));             % what the camera says it will deliver in total_time
+fprintf('GrabSave: frames %d x %d px (ROI %s, %s), room for %d, about %d expected at %.2f fps; %s\n', sz(1), sz(2), mat2str(vid.ROIPosition), vid.VideoFormat, nReq, nExpect, rate, memoryReport());
 cameraStrobe(src, true, cfg);   % strobe pulses only while frames are logged (the analysis indexes frames by pulse)
 start(vid);
 trigger(vid);
@@ -23,10 +26,11 @@ disp('Video acquisition triggered!')
 % trial is held once (letting the buffer fill and copying it out at the end doubled the memory and ran a
 % 16 GB PC dry). The loop ends at total_time + 0.5 s at the latest: before the DAQ session's
 % DataAvailable callback (total_time + 1 s of analog data) runs the online analysis on Tens.
-im = []; frameTimes = zeros(nReq, 1); k = 0; t0 = tic;
+im = []; frameTimes = zeros(nReq, 1); k = 0; t0 = tic; aborted = false;
 while k < nReq && toc(t0) < total_time + 0.5
     if isstruct(Mstate) && isfield(Mstate, 'running') && ~Mstate.running   % Abort pressed in MainWindow
         disp('GrabSave: Abort pressed, stopping the acquisition; the frames received so far are saved')
+        aborted = true;
         break
     end
     n = min(vid.FramesAvailable, nReq - k);
@@ -53,24 +57,32 @@ nAvail = k;
 if nAvail == 0
     error('GrabSave:noFrames', 'no frames arrived in %g s: check the camera, its USB link and the strobe/trigger settings', total_time + 0.5);
 end
-if nAvail ~= nReq
-    warning('GrabSave:frames', '%d frames received but %d were requested (dropped frames or memory?); the camera pulses recorded by the DAQ will not match the saved frames one to one', nAvail, nReq);
-    im(:, :, nAvail+1:end) = []; frameTimes(nAvail+1:end) = [];
+if ~aborted && nAvail < nExpect - max(2, ceil(0.005 * nExpect))
+    warning('GrabSave:frames', '%d frames received but about %d were expected in %g s (dropped frames, or the camera is slower than it reports); the camera pulses recorded by the DAQ may not match the saved frames one to one', nAvail, nExpect, total_time);
 end
-info = whos('im');
+info = whos('im'); bytesPerFrame = info.bytes / size(im, 3);
+if nAvail < size(im, 3)   % the array has room for the most frames a trial can have: shorten it when a second copy of the kept frames fits in memory
+    if roomForCopy(bytesPerFrame * nAvail)
+        im(:, :, nAvail+1:end) = [];
+    else
+        fprintf('GrabSave: not enough free memory to shorten the array: its last %d frames are empty; nFrames = %d is saved with the data\n', size(im, 3) - nAvail, nAvail);
+    end
+    frameTimes(nAvail+1:end) = [];
+end
+nFrames = nAvail;                                          % frames 1..nFrames of im are real
 sub = im(:, :, 1:max(1, floor(nAvail / 20)):nAvail);      % every ~20th frame for the saturation readout
-top = double(max(sub(:)));                                 % the ceiling actually reached (65520 = 16 x 4095 for 4x4 Sum binning of 12-bit data)
+top = double(max(sub(:)));                                 % the ceiling actually reached (65520 = 12-bit data left-aligned in 16 bits)
 satNote = ''; if top >= 0.99 * double(intmax(class(im))), satNote = ' - SATURATED: lower the LED or the exposure'; end
 u = double(unique(sub(sub > 0))); step = 0; for q = 1:numel(u), step = gcd(step, u(q)); if step == 1, break, end, end   % 16 = 12-bit data left-aligned in 16 bits, 1 = finer (summed) values
 fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); max pixel %d (values in steps of %d), %.1f%% of pixels at the maximum%s; %s\n', ...
-    nAvail, size(im, 2), size(im, 1), class(im), info.bytes / nAvail / 1e6, info.bytes / 2^30, top, step, 100 * mean(sub(:) >= top), satNote, memoryReport());
-Tens = im;
+    nAvail, size(im, 2), size(im, 1), class(im), bytesPerFrame / 1e6, bytesPerFrame * nAvail / 2^30, top, step, 100 * mean(sub(:) >= top), satNote, memoryReport());
+Tens = im; TensFrames = nFrames;
 tic
 info = whos('im'); nbytes = info.bytes;
 if nbytes > 2^31 - 1
-    save([ fname '.mat'], 'im', 'frameTimes', '-v7.3', '-nocompression');   % the default v7 format silently writes an empty file above 2 GB; uncompressed, because compressing several GB takes minutes between trials
+    save([ fname '.mat'], 'im', 'frameTimes', 'nFrames', '-v7.3', '-nocompression');   % the default v7 format silently writes an empty file above 2 GB; uncompressed, because compressing several GB takes minutes between trials
 else
-    save([ fname '.mat'], 'im', 'frameTimes');
+    save([ fname '.mat'], 'im', 'frameTimes', 'nFrames');
 end
 toc
 tic
@@ -78,7 +90,7 @@ tifopts = struct('big', nbytes > 2^32 - 1);   % BigTIFF above 4 GB
 saveastiff(im, [ fname '.tif'], tifopts)
 toc
 %Creating grab file
-tmp=Tens(:,:,10);
+tmp=Tens(:,:,min(10,nFrames));
 grab.img = tmp; %tmp is grab from collect
 grab.clock = round(datevec(now));
 grab.ROIcrop = [];%[40 260 155 250]; 
@@ -148,6 +160,17 @@ grab.comments = {};
 %     
 % 
 % end
+
+
+function warnIfConfigChanged(cfg, applied)
+% The camera is set up when the imager opens. A rigConfig.m edited afterwards is read here for every
+% trial but changes nothing until the imager restarts: say so, once for each new edit.
+persistent told
+if isempty(applied) || isequal(cfg, applied), told = []; return; end
+if ~isequal(told, cfg)
+    told = cfg;
+    warning('GrabSave:config', 'the camera settings in rigConfig.m / cameraConfig.m have changed since the imager opened; the camera still uses the old ones. Restart Retinotopy_Master to apply them.');
+end
 
 
 function txt = memoryReport

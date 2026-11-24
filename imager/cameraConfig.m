@@ -35,7 +35,7 @@ function cfg = cameraConfig
 %   * Frame rate: the sensor is read row by row (FLIR's table: about 27 us per sensor row in Mono16, so
 %     7 fps for the full 4600 rows and about 13 fps for 2752 rows at binning 1). Binning done by the
 %     camera's image processor does not speed this up; fewer rows do. setupCamera prints the rate the
-%     camera can deliver and plans the trial with it when it is below cfg.fps.
+%     camera can deliver; when that is below cfg.fps a trial keeps its duration and has fewer frames.
 %   * Mono16 (12-bit ADC) is strongly preferred over Mono8 for 2-4 % dF/F signals. Mono16 at 15 Hz
 %     needs a USB 3 port (the rear ports on the QI-Lab PC); on a USB 2 link the frame rate collapses.
 %   * Strobe: the BFS 6-pin GPIO has Line0 = opto-isolated input (black), Line1 = opto-isolated
