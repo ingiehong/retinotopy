@@ -31,8 +31,25 @@ if get(GUIhandles.main.analysisFlag,'value')
     framest = Grabtimes(fidx)-Disptimes(1);  % frame sampling times in sec
     frameang = framest/T*2*pi;
     
-    vidcell = cell(1,length(Disptimes)-1);
+    % Sweep number and position within its sweep of every stimulus frame. A frame belongs to the next
+    % sweep once its time has passed that sweep's start (at most one step per frame, as before).
+    nSweep = length(Disptimes)-1;
+    nStim = numel(fidx);
+    posInSweep = zeros(1,nStim); perSweep = zeros(1,nSweep);
     l = 1;
+    for k = 1:nStim
+        if framest(k)+Disptimes(1)>Disptimes(l+1)
+            l = l+1;
+        end
+        perSweep(l) = perSweep(l)+1;
+        posInSweep(k) = perSweep(l);
+    end
+    nAvg = min(perSweep);   % frames that every sweep has: the length of the sweep-averaged movie
+    % The sweep-averaged movie is accumulated as running integer sums (exact for up to 65537 sweeps of
+    % 16-bit frames) instead of collecting every frame per sweep first, which held a second copy of
+    % the whole trial in memory.
+    sumvideo = zeros(size(Tens,1), size(Tens,2), nAvg, 'uint32');
+
     k = 1;
     for j=fidx(1):fidx(end)
         
@@ -48,29 +65,19 @@ if get(GUIhandles.main.analysisFlag,'value')
             Sx = Sx + img; Stx = Stx + framest(k)*img;
         end
 
-        if framest(k)+Disptimes(1)>Disptimes(l+1)
-            l = l+1;
-        end
-        
-        if isempty(vidcell{l})
-            vidcell{l}(:,:,1) = Tens(:,:,j);
-        else
-            vidcell{l}(:,:,end+1) = Tens(:,:,j);
+        if posInSweep(k) <= nAvg
+            sumvideo(:,:,posInSweep(k)) = sumvideo(:,:,posInSweep(k)) + uint32(Tens(:,:,j));
         end
         
         k = k+1;
 
     end
     
-    size_vidcell=reshape(cell2mat(cellfun( @size, vidcell, 'UniformOutput',false) ),3,[]);
-    
-    avgvideo=uint16(zeros(size_vidcell(1,1), size_vidcell(2,1), min(size_vidcell(3,:))));
-    for i=1:min(size_vidcell(3,:))
-        avgframe = cellfun(@(c) c(:,:,i), vidcell ,'UniformOutput',false );
-        avgframe = reshape(avgframe, 1,1,[]);
-        avgframe = mean(cell2mat(avgframe),3);
-        avgvideo(:,:,i) = avgframe;
+    avgvideo = zeros(size(Tens,1), size(Tens,2), nAvg, 'uint16');
+    for i=1:nAvg
+        avgvideo(:,:,i) = double(sumvideo(:,:,i))/nSweep;   % mean over the sweeps, rounded on assignment as before
     end
+    clear sumvideo
      
     animal = get(findobj('Tag','animaltxt'),'String');
     unit   = get(findobj('Tag','unittxt'),'String');
@@ -79,7 +86,9 @@ if get(GUIhandles.main.analysisFlag,'value')
     tag    = get(findobj('Tag','tagtxt'),'String');
     dd = [datadir '\' lower(animal) ];
     fname = sprintf('%s\\%s_u%s_%s_%03d_%03d.tif',dd,animal,unit,expt,c,r);
-    if ~exist(fname, 'file')
+    if nAvg < 1
+        disp('No sweep-averaged movie: at least one sweep has no frames')
+    elseif ~exist(fname, 'file')
         save_tif(avgvideo, fname)   
         disp(['Saved average tif file as: ' fname])
     end

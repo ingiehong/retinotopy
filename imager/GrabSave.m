@@ -61,13 +61,14 @@ info = whos('im');
 sub = im(:, :, 1:max(1, floor(nAvail / 20)):nAvail);      % every ~20th frame for the saturation readout
 top = double(max(sub(:)));                                 % the ceiling actually reached (65520 = 16 x 4095 for 4x4 Sum binning of 12-bit data)
 satNote = ''; if top >= 0.99 * double(intmax(class(im))), satNote = ' - SATURATED: lower the LED or the exposure'; end
-fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); max pixel %d, %.1f%% of pixels at that value%s; %s\n', ...
-    nAvail, size(im, 2), size(im, 1), class(im), info.bytes / nAvail / 1e6, info.bytes / 2^30, top, 100 * mean(sub(:) >= top), satNote, memoryReport());
+u = double(unique(sub(sub > 0))); step = 0; for q = 1:numel(u), step = gcd(step, u(q)); if step == 1, break, end, end   % 16 = 12-bit data left-aligned in 16 bits, 1 = finer (summed) values
+fprintf('GrabSave: %d frames of %d x %d %s received, %.2f MB per frame (%.2f GB); max pixel %d (values in steps of %d), %.1f%% of pixels at the maximum%s; %s\n', ...
+    nAvail, size(im, 2), size(im, 1), class(im), info.bytes / nAvail / 1e6, info.bytes / 2^30, top, step, 100 * mean(sub(:) >= top), satNote, memoryReport());
 Tens = im;
 tic
 info = whos('im'); nbytes = info.bytes;
 if nbytes > 2^31 - 1
-    save([ fname '.mat'], 'im', 'frameTimes', '-v7.3');   % the default v7 format silently writes an empty file above 2 GB
+    save([ fname '.mat'], 'im', 'frameTimes', '-v7.3', '-nocompression');   % the default v7 format silently writes an empty file above 2 GB; uncompressed, because compressing several GB takes minutes between trials
 else
     save([ fname '.mat'], 'im', 'frameTimes');
 end
